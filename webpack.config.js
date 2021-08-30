@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const DonePlugin = require('./plugins/donePlugin')
+const AsyncPlugin = require('./plugins/AsyncPlugin')
 module.exports = {
   mode: "development",
   entry: './src/index.js',
@@ -91,6 +93,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './build/index.html',
       filename: 'index.html'
-    })
+    }),
+    new DonePlugin(),
+    new AsyncPlugin()
   ]
 };
