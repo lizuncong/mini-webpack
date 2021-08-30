@@ -1,0 +1,3 @@
+#### 什么是loader
+webpack只能处理javaScript的模块，如果要处理其他类型的文件，需要使用loader进行转换。loader是webpack中一个重要的概念，
+它是指用来将一段代码转换成另一段代码的webpack加载器。
