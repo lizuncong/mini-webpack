@@ -6,6 +6,15 @@ class AsyncPlugin{
                 cb()
             }, 1000)
         })
+
+        compiler.hooks.emit.tapPromise('AsyncPlugin', (compilation) => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    console.log('再等一秒')
+                    resolve()
+                }, 1000)
+            })
+        })
     }
 }
 

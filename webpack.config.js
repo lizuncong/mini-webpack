@@ -2,6 +2,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const DonePlugin = require('./plugins/donePlugin')
 const AsyncPlugin = require('./plugins/AsyncPlugin')
+const FileListPlugin = require('./plugins/FileListPlugin')
+const InlineSourcePlugin = require('./plugins/inlineSourcePlugin')
+const UploadPlugin = require('./plugins/uploadPlugin')
 module.exports = {
   mode: "development",
   entry: './src/index.js',
@@ -10,7 +13,7 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  watch: true,
+  // watch: true,
   resolveLoader: {
     modules: ['node_modules', path.resolve(__dirname, 'loader')],
     // 别名的方式引用loader
@@ -95,6 +98,18 @@ module.exports = {
       filename: 'index.html'
     }),
     new DonePlugin(),
-    new AsyncPlugin()
+    new AsyncPlugin(),
+    new FileListPlugin({
+      filename: 'list.md'
+    }),
+    new UploadPlugin({
+      bucket: '',
+      domain: '',
+      accessKey: '',
+      secretKey: ''
+    }),
+    new InlineSourcePlugin({
+      match: /\.(js|css)/
+    })
   ]
 };
