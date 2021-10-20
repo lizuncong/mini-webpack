@@ -1,4 +1,5 @@
 ### loader的引入方式
+loader只能是普通函数，不能使用箭头函数，因为loader中，this提供了整个上下文的环境
 #### 第一种引入方式：使用resolveLoader.modules告诉webpack在哪里查找loader
 ```js
 module.exports = {
@@ -92,7 +93,7 @@ module.exports = {
 #### 可以通过enforce改变loader的执行顺序
 loader将按照如下方式依次执行
 
-`pre loader` -> `normal loader` -> `inline loader` -> `post loader`。
+`pre loader`(配置了enforce: pre的loader) -> `normal loader` -> `inline loader` -> `post loader`(配置了enforce: post的loader)。
 
 `loader1`以及`loader3`没有配置`enforce`属性，因此是`normal loader`。
 
@@ -128,20 +129,7 @@ module.exports = {
 ```
 
 #### inline loader执行顺序
-
-
-
-因此，loader的执行顺序是：
-
-`pre loader` -> `normal loader` -> `inline loader` -> `post loader`。
-
-`pre loader` 就是 `enforce: 'pre'` 的loader。
-
-`normal loader` 就是没有配置 `enforce` 的正常loader。
-
-`inline loader` 就是通过内联方式引入的loader。
-
-`post loader` 就是配置 `enforce: 'post'` 的loader。
+通过`import Styles from '!style-loader!css-loader?modules!./styles.css';`方式引入的就是`inline-loader`
 
 `inline loader`的使用方式不同，也会改变loader的顺序：
 

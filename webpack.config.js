@@ -2,6 +2,7 @@ const path = require('path');
 module.exports = {
   mode: "development",
   entry: './src/index.js',
+  devtool: "source-map",
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
@@ -13,22 +14,15 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: 'loader1',
-      },
-      {
-        test: /\.js$/,
-        use: 'loader2',
-        enforce: "pre"
-      },
-      {
-        test: /\.js$/,
-        use: 'loader3',
-      },
-      {
-        test: /\.js$/,
-        use: 'loader4',
-        enforce: "post"
-      },
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              '@babel/preset-env'
+            ]
+          }
+        }
+      }
     ]
   }
 };
