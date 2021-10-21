@@ -1,2 +1,5 @@
-const a = require('./a.js')
-console.log('index.js', a)
+const img = require('./2.png')
+require('./index.less')
+const ele = document.createElement('img')
+ele.src = img;
+document.body.appendChild(ele)

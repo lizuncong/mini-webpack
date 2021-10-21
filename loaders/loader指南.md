@@ -159,9 +159,38 @@ function loader(source){
     console.log('pitchLoader...', source)
 }
 
+loader.raw = true // 如果设置了raw = true，说明当前loader接受的source是个二进制流
+
 loader.pitch = function(){
     console.log('pitch...')
 }
 
+
 module.exports = loader
+```
+
+
+### 异步loader
+同步loader执行完就会继续执行下一个loader
+```javascript
+function loader(source, ...rest){
+    console.log(source)
+    return source
+}
+```
+可以通过在loader中调用
+```javascript
+const callback = this.async();
+```
+将loader变成异步loader。异步loader必须手动调用callback才会执行下一个loader
+```javascript
+function loader(source){
+    const callback = this.async(); // 将loader变成异步的
+    console.log(source)
+    // 3秒后交给下一个loader处理
+    setTimeout(() => {
+        callback(null, source)  // 第一个参数用于暴露错误
+    }, 3000);
+    return source  // return都没用，必须手动调用callback
+}
 ```

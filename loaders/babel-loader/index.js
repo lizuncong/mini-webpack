@@ -3,7 +3,6 @@ const loaderUtils = require('loader-utils')
 function loader(source){
   const options = loaderUtils.getOptions(this);
   const cb = this.async();
-  console.log('this.resourcePath..', this.resourcePath)
   babel.transform(source, {
     ...options,
     sourceMap: true,
