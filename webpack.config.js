@@ -16,22 +16,25 @@ module.exports = {
       {
         test: /\.js$/,
         use: {
-          loader: 'babel-loader',
+          loader: path.resolve(__dirname, 'loaders', 'babel-loader'),
           options: {
             presets: [
               '@babel/preset-env'
             ]
           }
         }
-        // use: ['loader2', 'loader1']
       },
       {
         test: /\.(png|jpg)$/,
-        use: ['url-loader']
+        use: path.resolve(__dirname, 'loaders', 'file-loader')
       },
       {
         test: /\.less$/,
-        use: ['css-loader', 'less-loader']
+        use: [
+          'style-loader', 
+          'css-loader', 
+          path.resolve(__dirname, 'loaders', 'less-loader')
+        ]
       }
     ]
   },
