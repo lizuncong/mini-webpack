@@ -10,7 +10,7 @@ function loader(source){
             done(err)
             return;
         }
-        // console.log('imports...', imports)
+        console.log('imports...', imports)
         // 必须的，收集.less文件中@import引入的文件
         imports.forEach(this.addDependency, this);
         done(err, css)
