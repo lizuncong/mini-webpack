@@ -13,6 +13,10 @@ module.exports = {
   },
   module: {
     rules: [
+      // {
+      //   test: /\.js$/,
+      //   use: ['loader2', 'loader1']
+      // },
       {
         test: /\.js$/,
         use: {
@@ -31,9 +35,22 @@ module.exports = {
       {
         test: /\.less$/,
         use: [
-          'style-loader', 
-          'css-loader', 
+          'style-loader',
+          'css-loader',
           path.resolve(__dirname, 'loaders', 'less-loader')
+        ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          // path.resolve(__dirname, 'loaders', 'style-loader'),
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: false
+            }
+          },
         ]
       }
     ]

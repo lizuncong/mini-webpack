@@ -5,9 +5,9 @@ function loader(source, ...rest){
     console.log(rest)
     console.log('=====loader1=========')
     setTimeout(() => {
+        source = "import ___CSS_LOADER_API_IMPORT___ from \"../src/test.js\";\n" + source
         callback(null, source)
     }, 3000);
-    return source
 }
 
 loader.raw = true
