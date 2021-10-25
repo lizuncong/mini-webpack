@@ -18,130 +18,73 @@
 //
 // module.exports = loader
 
-// Imports
-import ___CSS_LOADER_API_IMPORT___ from "../node_modules/css-loader/dist/runtime/api.js";
-import ___CSS_LOADER_AT_RULE_IMPORT_0___ from "-!../node_modules/css-loader/dist/cjs.js??ref--7-1!./common.css";
-import ___CSS_LOADER_GET_URL_IMPORT___ from "../node_modules/css-loader/dist/runtime/getUrl.js";
-import ___CSS_LOADER_URL_IMPORT_0___ from "./2.jpg";
-var ___CSS_LOADER_EXPORT___ = ___CSS_LOADER_API_IMPORT___(function(i){return i[1]});
-___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
-var ___CSS_LOADER_URL_REPLACEMENT_0___ = ___CSS_LOADER_GET_URL_IMPORT___(___CSS_LOADER_URL_IMPORT_0___);
-// Module
-___CSS_LOADER_EXPORT___.push([module.id, "body{\n    background: yellow;\n    background: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n}", ""]);
-// Exports
-export default ___CSS_LOADER_EXPORT___;
+const postcss = require('postcss')
+const fs = require('fs')
 
-
-const loaderUtils = require('loader-utils')
-const postcss = require("postcss");
-async function loader(source){
-    const rawOptions = loaderUtils.getOptions(this) || {}
-    const plugins = []
-    const callback = this.async();
-    const options = {
-        esModule:true,
-        import:true,
-        importLoaders:undefined,
-        modules:false,
-        sourceMap:true,
-        url:true
-    }
-    const replacements = []
-    const exports = [];
-    const importPluginImports = []
-    const importPluginApi = [];
-
-    plugins.push(
-        importParser({
-            imports: importPluginImports,
-            api: importPluginApi,
-            context: this.context,
-            rootContext: this.rootContext,
-            filter: () => true,
-            resolver: this.getResolve({
-                conditionNames: ["style"],
-                extensions: [".css"],
-                mainFields: ["css", "style", "main", "..."],
-                mainFiles: ["index", "..."],
-            }),
-            urlHandler: (url) =>
-                stringifyRequest(
-                    this,
-                    combineRequests(getPreRequester(this)(options.importLoaders), url)
-                ),
-        })
-    );
-
-    const urlPluginImports = [];
-    plugins.push(
-        urlParser({
-            imports: urlPluginImports,
-            replacements,
-            context: this.context,
-            rootContext: this.rootContext,
-            filter: () => true,
-            resolver: this.getResolve({
-                conditionNames: ["asset"],
-                mainFields: ["asset"],
-                mainFiles: [],
-                extensions: [],
-            }),
-            urlHandler: (url) => stringifyRequest(this, url),
-        })
-    );
-
-    const {
-        resourcePath
-    } = this;
-    let result;
-    result = await postcss(plugins).process(content, {
-        hideNothingWarning: true,
-        from: resourcePath,
-        to: resourcePath,
-        map: options.sourceMap
-            ? {
-                prev: map ? normalizeSourceMap(map, resourcePath) : null,
-                inline: false,
-                annotation: false,
+const plugin1 = (opts = {}) => {
+    // console.log('plugin1.opts...', opts)
+    const variables = {}
+    return {
+        postcssPlugin: 'PLUGIN NAME',
+        Once (root) {
+            // console.log('root', root)
+          // Calls once per file, since every file has single Root
+        },
+        Declaration (decl) {
+            console.log('decl')
+          // All declaration nodes
+        },
+        Declaration: {
+            color: decl => {
+                variables[decl.prop] = decl.value
+                if(decl.value === 'blue'){
+                    decl.value = 'black'
+                }
+                console.log('color..', decl.value)
+              // All `color` declarations
             }
-            : false,
-    });
-
-    const imports = []
-        .concat(icssPluginImports.sort(sort))
-        .concat(importPluginImports.sort(sort))
-        .concat(urlPluginImports.sort(sort));
-    const api = []
-        .concat(importPluginApi.sort(sort))
-        .concat(icssPluginApi.sort(sort));
-
-    if (options.modules.exportOnlyLocals !== true) {
-        imports.unshift({
-            importName: "___CSS_LOADER_API_IMPORT___",
-            url: stringifyRequest(this, require.resolve("./runtime/api")),
-        });
-
-        if (options.sourceMap) {
-            imports.unshift({
-                importName: "___CSS_LOADER_API_SOURCEMAP_IMPORT___",
-                url: stringifyRequest(
-                    this,
-                    require.resolve("./runtime/cssWithMappingToString")
-                ),
-            });
-        }
+        },
+          AtRule: {
+            media: atRule => {
+              // All @media at-rules
+            }
+          },
+          OnceExit(){
+            console.log('shared', variables)
+          }
+    
     }
-
-    const importCode = getImportCode(imports, options);
-    const moduleCode = getModuleCode(result, api, replacements, options, this);
-    const exportCode = getExportCode(
-        exports,
-        replacements,
-        needToUseIcssPlugin,
-        options
-    );
-
-    callback(null, `${importCode}${moduleCode}${exportCode}`);
 }
 
-module.exports = loader
+
+plugin1.postcss = true
+
+const plugin2 = (opts = {}) => {
+    return {
+      postcssPlugin: 'vars-collector',
+      prepare (result) {
+          console.log('plugin2..result', result)
+        const variables = {}
+        return {
+          Declaration (node) {
+            if (node.variable) {
+              variables[node.prop] = node.value
+            }
+          },
+          OnceExit () {
+            console.log(variables)
+          }
+        }
+      }
+    }
+  }
+
+  plugin2.postcss = true
+fs.readFile('../../src/index.css', (err, css) => {
+    postcss([plugin1, plugin2])
+      .process(css, { from: '../../src/index.css', to: './app.css' })
+      .then(result => {
+        // console.log('result...', result)
+        fs.writeFile('./app.css', result.css, () => true)
+      })
+})

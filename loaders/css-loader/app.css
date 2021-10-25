@@ -1,6 +1,6 @@
 @import './common.css';
 body{
-    color: blue;
+    color: black;
     background: yellow;
     background: url('./2.jpg');
 }
