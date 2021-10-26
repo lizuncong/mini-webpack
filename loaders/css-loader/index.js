@@ -21,67 +21,83 @@
 const postcss = require('postcss')
 const fs = require('fs')
 
-const plugin1 = (opts = {}) => {
-    // console.log('plugin1.opts...', opts)
-    const variables = {}
-    return {
-        postcssPlugin: 'PLUGIN NAME',
-        Once (root) {
-            // console.log('root', root)
-          // Calls once per file, since every file has single Root
-        },
-        Declaration (decl) {
-            console.log('decl')
-          // All declaration nodes
-        },
-        Declaration: {
-            color: decl => {
-                variables[decl.prop] = decl.value
-                if(decl.value === 'blue'){
-                    decl.value = 'black'
-                }
-                console.log('color..', decl.value)
-              // All `color` declarations
-            }
-        },
-          AtRule: {
-            media: atRule => {
-              // All @media at-rules
-            }
-          },
-          OnceExit(){
-            console.log('shared', variables)
+const plugin = (options = {}) => {
+  return {
+    postcssPlugin: "postcss-import-parser",
+
+    prepare(result) {
+      const parsedAtRules = [];
+      return {
+        AtRule: {
+          import(atRule) {
+            const parsedAtRule = {
+              atRule,
+              prefix: undefined,
+              url: atRule.params,
+              media: undefined,
+              isRequestable: true
+            };
+            parsedAtRules.push(parsedAtRule);
           }
-    
-    }
-}
+        },
 
-
-plugin1.postcss = true
-
-const plugin2 = (opts = {}) => {
-    return {
-      postcssPlugin: 'vars-collector',
-      prepare (result) {
-          console.log('plugin2..result', result)
-        const variables = {}
-        return {
-          Declaration (node) {
-            if (node.variable) {
-              variables[node.prop] = node.value
-            }
-          },
-          OnceExit () {
-            console.log(variables)
+        async OnceExit() {
+          if (parsedAtRules.length === 0) {
+            return;
           }
+
+          const resolvedAtRules = await Promise.all(parsedAtRules.map(async parsedAtRule => {
+            const {
+              atRule,
+              isRequestable,
+              prefix,
+              url,
+              media
+            } = parsedAtRule;
+
+            if (isRequestable) {
+              const request = (0, _utils.requestify)(url, options.rootContext);
+              const {
+                resolver,
+                context
+              } = options;
+              const resolvedUrl = await (0, _utils.resolveRequests)(resolver, context, [...new Set([request, url])]);
+
+              if (!resolvedUrl) {
+                return;
+              }
+
+              atRule.remove(); // eslint-disable-next-line consistent-return
+
+              return {
+                url: resolvedUrl,
+                media,
+                prefix,
+                isRequestable
+              };
+            }
+
+            atRule.remove(); // eslint-disable-next-line consistent-return
+
+            return {
+              url,
+              media,
+              prefix,
+              isRequestable
+            };
+          }))
         }
-      }
-    }
-  }
 
-  plugin2.postcss = true
+      };
+    }
+
+  };
+};
+plugin.postcss = true
+
+
 fs.readFile('../../src/index.css', (err, css) => {
-    postcss([plugin1, plugin2])
+    postcss([plugin])
       .process(css, { from: '../../src/index.css', to: './app.css' })
       .then(result => {
         // console.log('result...', result)
