@@ -42,10 +42,6 @@ const plugin = (options = {}) => {
               } = options;
               const resolvedUrl = await resolver(context, url);
 
-              if (!resolvedUrl) {
-                return;
-              }
-
               atRule.remove(); // eslint-disable-next-line consistent-return
 
               return {
@@ -69,19 +65,13 @@ plugin.postcss = true
 function loader(source){
   const importPluginImports = [];
   const importPluginApi = [];
-  const resolver = this.getResolve({
-    conditionNames: ["style"],
-    extensions: [".css"],
-    mainFields: ["css", "style", "main", "..."],
-    mainFiles: ["index", "..."]
-  });
+  const resolver = this.getResolve({});
   postcss([
     plugin({
       imports: importPluginImports,
       api: importPluginApi,
       resolver,
       context: this.context,
-      rootContext: this.rootContext,
       urlHandler: url => (0, _loaderUtils.stringifyRequest)(this, (0, _utils.combineRequests)((0, _utils.getPreRequester)(this)(options.importLoaders), url))
     })
   ])
