@@ -1,5 +1,6 @@
 const postcss = require('postcss')
 const fs = require('fs')
+const loaderUtils = require('loader-utils')
 
 const plugin = (options = {}) => {
   return {
@@ -13,7 +14,7 @@ const plugin = (options = {}) => {
             const parsedAtRule = {
               atRule,
               prefix: undefined,
-              url: atRule.params, // './common.css'
+              url: atRule.params.replace(/['""]/g, ""), // './common.css'
               media: undefined,
               isRequestable: true
             };
@@ -52,6 +53,36 @@ const plugin = (options = {}) => {
               };
             }
           }))
+
+          const urlToNameMap = new Map();
+          for (let index = 0; index <= resolvedAtRules.length - 1; index++) {
+            const resolvedAtRule = resolvedAtRules[index];
+
+            const {
+              url,
+              isRequestable,
+              prefix,
+              media
+            } = resolvedAtRule;
+            const newUrl = url;
+            let importName = urlToNameMap.get(newUrl);
+            
+            if (!importName) {
+              importName = `___CSS_LOADER_AT_RULE_IMPORT_${urlToNameMap.size}___`;
+              urlToNameMap.set(newUrl, importName);
+              console.log('options.urlHandler(newUrl)', options.urlHandler(newUrl))
+              options.imports.push({
+                importName,
+                url: options.urlHandler(newUrl),
+                index
+              });
+            }
+            options.api.push({
+              importName,
+              media,
+              index
+            });
+          }
         }
 
       };
@@ -62,25 +93,47 @@ const plugin = (options = {}) => {
 plugin.postcss = true
 
 
-function loader(source){
+async function loader(source){
+  const callback = this.async();
+  const options = {
+    import:true,
+    esModule:true,
+    importLoaders:undefined,
+    modules:false,
+    sourceMap:false,
+    url:true
+  }
   const importPluginImports = [];
   const importPluginApi = [];
   const resolver = this.getResolve({});
-  postcss([
+
+  const {
+    resourcePath
+  } = this;
+  let result;
+  const result = await postcss([
     plugin({
       imports: importPluginImports,
       api: importPluginApi,
       resolver,
       context: this.context,
-      urlHandler: url => (0, _loaderUtils.stringifyRequest)(this, (0, _utils.combineRequests)((0, _utils.getPreRequester)(this)(options.importLoaders), url))
+      urlHandler: url => {
+        const loadersRequest = this.loaders.slice(this.loaderIndex, this.loaderIndex + 1).map(x => x.request).join("!");
+        const req = `-!${loadersRequest}!`
+        const comReq = req + url
+        return loaderUtils.stringifyRequest(this, comReq)
+      }
     })
   ])
-  .process(source, { to: './app.css' })
-  .then(result => {
-    console.log('result...', result)
-    fs.writeFile('./app.css', result.css, () => true)
+  .process(source, { 
+    hideNothingWarning: true,
+    from: resourcePath,
+    to: resourcePath,
+    map
   })
-  return ''
+  console.log('result...', result)
+  fs.writeFile('./app.css', result.css, () => true)
+  // return ''
     // const reg = /url\((.+?)\)/g;
     // let pos = 0;
     // let current;
@@ -100,4 +153,3 @@ function loader(source){
 
 module.exports = loader
 
-// 'body{\n    color: blue;\n    background: yellow;\n    background: url(___CSS_LOADER_URL_REPLACEMENT_0___);\n}\n\n.container{\n    color: red;\n}'
