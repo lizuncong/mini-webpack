@@ -131,8 +131,12 @@ async function loader(source){
     to: resourcePath,
     map
   })
-  console.log('result...', result)
-  fs.writeFile('./app.css', result.css, () => true)
+  const imports = [].concat(importPluginImports);
+  const api = [].concat(importPluginApi);
+  imports.unshift({
+    importName: "___CSS_LOADER_API_IMPORT___",
+    url: loaderUtils.stringifyRequest(this, require.resolve("./runtime/api"))
+  });
   // return ''
     // const reg = /url\((.+?)\)/g;
     // let pos = 0;

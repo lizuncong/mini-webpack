@@ -1,9 +1,8 @@
-@import './common.css';
 body{
     color: blue;
     background: yellow;
-    background: url('./2.jpg');
 }
+@import './common.css';
 
 .container{
     color: red;
