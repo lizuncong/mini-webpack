@@ -1,96 +1,8 @@
 const postcss = require('postcss')
-const fs = require('fs')
 const loaderUtils = require('loader-utils')
-
-const plugin = (options = {}) => {
-  return {
-    postcssPlugin: "postcss-import-parser",
-
-    prepare(result) {
-      const parsedAtRules = [];
-      return {
-        AtRule: {
-          import(atRule) {
-            const parsedAtRule = {
-              atRule,
-              prefix: undefined,
-              url: atRule.params.replace(/['""]/g, ""), // './common.css'
-              media: undefined,
-              isRequestable: true
-            };
-            parsedAtRules.push(parsedAtRule);
-          }
-        },
-
-        async OnceExit() {
-          if (parsedAtRules.length === 0) {
-            return;
-          }
-
-          const resolvedAtRules = await Promise.all(parsedAtRules.map(async parsedAtRule => {
-            const {
-              atRule,
-              isRequestable,
-              prefix,
-              url,
-              media
-            } = parsedAtRule;
-            // 不考虑绝对路径，只考虑相对路径的引用情况，比如： @import "./common.css"
-            if (isRequestable) {
-              const {
-                resolver,
-                context
-              } = options;
-              const resolvedUrl = await resolver(context, url);
-
-              atRule.remove(); // eslint-disable-next-line consistent-return
-
-              return {
-                url: resolvedUrl,
-                media,
-                prefix,
-                isRequestable
-              };
-            }
-          }))
-
-          const urlToNameMap = new Map();
-          for (let index = 0; index <= resolvedAtRules.length - 1; index++) {
-            const resolvedAtRule = resolvedAtRules[index];
-
-            const {
-              url,
-              isRequestable,
-              prefix,
-              media
-            } = resolvedAtRule;
-            const newUrl = url;
-            let importName = urlToNameMap.get(newUrl);
-            
-            if (!importName) {
-              importName = `___CSS_LOADER_AT_RULE_IMPORT_${urlToNameMap.size}___`;
-              urlToNameMap.set(newUrl, importName);
-              console.log('options.urlHandler(newUrl)', options.urlHandler(newUrl))
-              options.imports.push({
-                importName,
-                url: options.urlHandler(newUrl),
-                index
-              });
-            }
-            options.api.push({
-              importName,
-              media,
-              index
-            });
-          }
-        }
-
-      };
-    }
-
-  };
-};
-plugin.postcss = true
+const postcssImportParser = require('./plugins/postcss-import-parser')
+const postcssUrlParser = require('./plugins/postcss-url-parser')
+const { getImportCode, getModuleCode, getExportCode } = require('./utils')
 
 
 async function loader(source){
@@ -103,16 +15,20 @@ async function loader(source){
     sourceMap:false,
     url:true
   }
+
+  // 处理 @import './common.css'
   const importPluginImports = [];
   const importPluginApi = [];
   const resolver = this.getResolve({});
+  // 处理url(./2.png)
+  const urlPluginImports = [];
+  const replacements = [];
 
   const {
     resourcePath
   } = this;
-  let result;
   const result = await postcss([
-    plugin({
+    postcssImportParser({
       imports: importPluginImports,
       api: importPluginApi,
       resolver,
@@ -123,36 +39,53 @@ async function loader(source){
         const comReq = req + url
         return loaderUtils.stringifyRequest(this, comReq)
       }
+    }),
+    postcssUrlParser({
+      imports: urlPluginImports,
+      replacements,
+      context: this.context,
+      resolver,
+      urlHandler: url => loaderUtils.stringifyRequest(this, url)
     })
   ])
-  .process(source, { 
+  .process(source, {
     hideNothingWarning: true,
     from: resourcePath,
     to: resourcePath,
-    map
+    map: false
   })
-  const imports = [].concat(importPluginImports);
+
+  // importPluginImports是个数组，数组里的元素为： 
+  // importName:'___CSS_LOADER_AT_RULE_IMPORT_0___'
+  // index:0
+  // url:'"-!../node_modules/css-loader/dist/cjs.js??ref--7-0!./common.css"'
+  const imports = [].concat(importPluginImports).concat(urlPluginImports);
+  // importPluginApi是个数组，数组里的元素为：
+  // importName:'___CSS_LOADER_AT_RULE_IMPORT_0___'
+  // index:0
+  // media:undefined
   const api = [].concat(importPluginApi);
   imports.unshift({
     importName: "___CSS_LOADER_API_IMPORT___",
     url: loaderUtils.stringifyRequest(this, require.resolve("./runtime/api"))
   });
-  // return ''
-    // const reg = /url\((.+?)\)/g;
-    // let pos = 0;
-    // let current;
-    // const arr = ['let list = []']
-    // while(current = reg.exec(source)){
-    //     const [matchUrl, g] = current
-    //     const last = reg.lastIndex - matchUrl.length
-    //     arr.push(`list.push(${JSON.stringify(source.slice(pos, last))})`)
-    //     pos = reg.lastIndex;
-    //     arr.push(`list.push('url('+require(${g})+')')`)
-    // }
 
-    // arr.push(`list.push(${JSON.stringify(source.slice(pos))})`)
-    // arr.push(`module.exports = list.join('')`)
-    // return arr.join('\r\n')
+  // getImportCode 输出：
+  // Imports
+  // import ___CSS_LOADER_API_IMPORT___ from "../node_modules/css-loader/dist/runtime/api.js";
+  // import ___CSS_LOADER_AT_RULE_IMPORT_0___ from "-!../node_modules/css-loader/dist/cjs.js??ref--7-0!./common.css";
+  const importCode = getImportCode(imports)
+  // getModuleCode输出：
+  // var ___CSS_LOADER_EXPORT___ = ___CSS_LOADER_API_IMPORT___(function(i){return i[1]});
+  // ___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
+  // // Module
+  // ___CSS_LOADER_EXPORT___.push([module.id, "body{\n    color: blue;\n    background: yellow;\n}\n\n\n.container{\n    color: red;\n}\n\n", ""]);
+  const moduleCode = getModuleCode(result, api, replacements)
+  // getExportCode输出：
+  // Exports
+  // export default ___CSS_LOADER_EXPORT___;
+  const exportCode = getExportCode(options)
+  callback(null, `${importCode}${moduleCode}${exportCode}`);
 }
 
 module.exports = loader
