@@ -7,5 +7,5 @@ loaders目录里面都是各种手写loader，目前手写的 loader 有：
 - file-loader
 - url-loader
 - less-loader 对应的官方less-loader版本5.0.0
-- css-loader 对应的官方css-loader版本5.2.7。其中css loader开发稍稍复杂，可以参考css loader原理指南
+- css-loader 对应的官方css-loader版本5.2.7。其中css loader开发稍稍复杂，可以参考 [css loader原理指南](https://github.com/lizuncong/mini-webpack/blob/master/loaders/css-loader/readme.md)
 - style-loader 对应的官方style-loader版本2.0.0
