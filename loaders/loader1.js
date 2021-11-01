@@ -6,8 +6,9 @@ function loader(source, ...rest){
     console.log('=====loader1=========')
     setTimeout(() => {
         // source = "import ___CSS_LOADER_API_IMPORT___ from \"../src/test.js\";\n" + source
-        source = "import ___CSS_LOADER_API_IMPORT___ from \"../src/2.png\";\n" + source
-
+        if(rest[0].sources[0] === 'index.js'){
+            source = "import ___CSS_LOADER_API_IMPORT___ from \"../src/index.css\";\n" + source
+        } 
         callback(null, source)
     }, 3000);
 }

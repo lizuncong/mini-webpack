@@ -66,7 +66,6 @@ const plugin = (options = {}) => {
             if (!importName) {
               importName = `___CSS_LOADER_AT_RULE_IMPORT_${urlToNameMap.size}___`;
               urlToNameMap.set(newUrl, importName);
-              console.log('options.urlHandler(newUrl)', options.urlHandler(newUrl))
               options.imports.push({
                 importName,
                 url: options.urlHandler(newUrl),
