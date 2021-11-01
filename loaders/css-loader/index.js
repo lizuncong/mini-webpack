@@ -92,8 +92,8 @@ async function loader(source){
   // console.log(exportCode)
 
   const str = `${importCode}${moduleCode}${exportCode}`
-  console.log('===========str==========')
-  console.log(str)
+  // console.log('===========str==========')
+  // console.log(str)
   callback(null, str);
 
 }

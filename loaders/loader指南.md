@@ -150,9 +150,9 @@ import Styles from '-!style-loader!css-loader?modules!./styles.css';
 loader包含两部分，pitchLoader和normalLoader，pitch和normal的执行顺序正好相反
 - 当pitch没有定义或者没有返回值时，会先依次执行pitch在获取资源执行loader
 - 如果定义的某个pitch有返回值则会跳过读取资源和自己的loader。假设有use: [loader1，loader2，loader3]，三个loader都包含pitchloader和normal loader。
-    + 第一种情况，三个loader的pitch loader都没有返回值，那么执行顺序为：pitch loader3  -> pitch loader2 -> pitch loader1 -> 获取资源 -> normal loader1 ->
-    normal loader2 -> normal loader3
-    + 第二种情况，pitch loader有返回值，假设pitch loader2有返回值，则执行顺序为：pitch loader3 -> pitch loader2 -> noraml loader3
+    + 第一种情况，三个loader的pitch loader都没有返回值，那么执行顺序为：pitch loader1  -> pitch loader2 -> pitch loader3 -> 获取资源 -> normal loader3 ->
+    normal loader2 -> normal loader1
+    + 第二种情况，pitch loader有返回值，假设pitch loader2有返回值，则执行顺序为：pitch loader1 -> pitch loader2 -> noraml loader1
     
 ```javascript
 function loader(source){
