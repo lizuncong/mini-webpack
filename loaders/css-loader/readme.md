@@ -198,3 +198,46 @@ const importPluginApi = [ { importName: '___CSS_LOADER_AT_RULE_IMPORT_0___', ind
 ___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
 ___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
 ```
+
+#### url规则的处理
+`postcss-url-parser` 解析 `url()`规则。并使用变量 `urlPluginImports` 收集需要引入的模块路径信息。
+```javascript
+const urlPluginImports = [
+  {
+    importName: '___CSS_LOADER_GET_URL_IMPORT___',
+    url: '"../loaders/css-loader/runtime/getUrl.js"',
+    index: -1
+  },
+  {
+    importName: '___CSS_LOADER_URL_IMPORT_0___',
+    url: '"./2.png"',
+    index: 0
+  },
+  {
+    importName: '___CSS_LOADER_URL_IMPORT_1___',
+    url: '"./2.jpg"',
+    index: 1
+  }
+]
+// 遍历urlPluginImports输出 import importName from url：
+import ___CSS_LOADER_GET_URL_IMPORT___ from "../loaders/css-loader/runtime/getUrl.js";
+import ___CSS_LOADER_URL_IMPORT_0___ from "./2.png";
+import ___CSS_LOADER_URL_IMPORT_1___ from "./2.jpg";
+
+
+
+// 占位信息， postcss-url-paser将 background: url(./2.jpg); 解析成 background: url(___CSS_LOADER_URL_REPLACEMENT_0___);其中___CSS_LOADER_URL_REPLACEMENT_0___
+// 用于占位。后面需要使用这个占位符将 background: url(___CSS_LOADER_URL_REPLACEMENT_0___); 解析成运行时代码 "background: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ")";
+const replacements = [
+    {
+        replacementName: '___CSS_LOADER_URL_REPLACEMENT_0___',
+        importName: '___CSS_LOADER_URL_IMPORT_0___'
+    },
+    {
+        replacementName: '___CSS_LOADER_URL_REPLACEMENT_1___',
+        importName: '___CSS_LOADER_URL_IMPORT_1___'
+    }
+]
+
+
+```
