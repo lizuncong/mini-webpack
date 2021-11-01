@@ -55,8 +55,7 @@ async function loader(source){
     to: resourcePath,
     map: false
   })
-
-  // importPluginImports是个数组，数组里的元素为： 
+  // importPluginImports是个数组，数组里的元素为：
   // importName:'___CSS_LOADER_AT_RULE_IMPORT_0___'
   // index:0
   // url:'"-!../node_modules/css-loader/dist/cjs.js??ref--7-0!./common.css"'
@@ -64,7 +63,6 @@ async function loader(source){
   // importPluginApi是个数组，数组里的元素为：
   // importName:'___CSS_LOADER_AT_RULE_IMPORT_0___'
   // index:0
-  // media:undefined
   const api = [].concat(importPluginApi);
   imports.unshift({
     importName: "___CSS_LOADER_API_IMPORT___",

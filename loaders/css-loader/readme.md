@@ -3,7 +3,8 @@
 - [webpack loader开发基础](https://webpack.js.org/contribute/writing-a-loader/)
 
 ### 示例代码
-本篇所有讲解基于下面的 `index.css` 以及 `common.css` 文件：
+本篇所有讲解基于下面的代码文件：
+
 index.css:
 ```css
 body{
@@ -174,3 +175,26 @@ body{
 
 
 #### @import规则的处理
+`postcss-import-parser` 解析 `@import` 规则，并使用变量 `importPluginImports` 收集需要引入的 css 模块路径信息。使用 `importPluginApi` 收集
+需要引入的模块
+```javascript
+// 注意：如果index.css中使用了多次 @import './common.css';那么importPluginImports只会保留一个import
+const importPluginImports = [
+  {
+    importName: '___CSS_LOADER_AT_RULE_IMPORT_0___',
+    url: '"./common.css"',
+    index: 0
+  }
+]
+// 后面通过遍历importPluginImports中的每一项，输出 import importName from url：
+import ___CSS_LOADER_AT_RULE_IMPORT_0___ from "./common.css";
+
+
+
+
+// 注意：和importPluginImports不同，如果index.css中多次使用了@import './common.css'; 则这些@import都会被收集到importPluginApi中。
+const importPluginApi = [ { importName: '___CSS_LOADER_AT_RULE_IMPORT_0___', index: 0 } ]
+// 通过遍历importPluginApi，输出___CSS_LOADER_EXPORT___.i(${item.importName})
+___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
+___CSS_LOADER_EXPORT___.i(___CSS_LOADER_AT_RULE_IMPORT_0___);
+```

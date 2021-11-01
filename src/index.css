@@ -9,4 +9,5 @@ body{
     color: red;
     background: url(./2.jpg);
 }
+@import './common.css';
 
