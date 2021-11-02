@@ -33,13 +33,13 @@ async function loader(source){
       api: importPluginApi,
       resolver,
       context: this.context,
-      urlHandler: url => loaderUtils.stringifyRequest(this, url)
-      // urlHandler: url => {
-      //   const loadersRequest = this.loaders.slice(this.loaderIndex, this.loaderIndex + 1).map(x => x.request).join("!");
-      //   const req = `-!${loadersRequest}!`
-      //   const comReq = req + url
-      //   return loaderUtils.stringifyRequest(this, comReq)
-      // }
+      // urlHandler: url => loaderUtils.stringifyRequest(this, url)
+      urlHandler: url => {
+        const loadersRequest = this.loaders.slice(this.loaderIndex, this.loaderIndex + 1).map(x => x.request).join("!");
+        const req = `-!${loadersRequest}!`
+        const comReq = req + url
+        return loaderUtils.stringifyRequest(this, comReq)
+      }
     }),
     postcssUrlParser({
       imports: urlPluginImports,
@@ -92,8 +92,9 @@ async function loader(source){
   // console.log(exportCode)
 
   const str = `${importCode}${moduleCode}${exportCode}`
-  // console.log('===========str==========')
-  // console.log(str)
+  console.log('===========my css loader==========')
+  console.log(str)
+  console.log('===========my css loader 2222==========')
   callback(null, str);
 
 }
