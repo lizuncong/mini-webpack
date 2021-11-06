@@ -128,7 +128,7 @@ module.exports = {
 };
 ```
 
-#### inline loader执行顺序
+#### [inline loader执行顺序](https://webpack.js.org/concepts/loaders/#inline)
 通过`import Styles from '!style-loader!css-loader?modules!./styles.css';`方式引入的就是`inline-loader`
 
 `inline loader`的使用方式不同，也会改变loader的顺序：
@@ -146,7 +146,7 @@ import Styles from '!!style-loader!css-loader?modules!./styles.css';
 import Styles from '-!style-loader!css-loader?modules!./styles.css';
 ```
 
-#### loader的组成
+#### [loader的组成](https://webpack.js.org/api/loaders/#pitching-loader)
 loader包含两部分，pitchLoader和normalLoader，pitch和normal的执行顺序正好相反
 - 当pitch没有定义或者没有返回值时，会先依次执行pitch在获取资源执行loader
 - 如果定义的某个pitch有返回值则会跳过读取资源和自己的loader。假设有use: [loader1，loader2，loader3]，三个loader都包含pitchloader和normal loader。
