@@ -2,4 +2,26 @@ div {
     height: 200px;
     color: red;
     overflow: hidden;
+    background-color: aqua;
+    margin-bottom: 20px;
 }
+
+@media (max-width: 480px) {
+    div {
+        background-color: lightgreen;
+    }
+    div {
+        color: green;
+    }
+}
+
+@media (max-width: 960px) {
+    div {
+        background-color: aliceblue;
+    }
+    div {
+        color: blue;
+    }
+}
+
+

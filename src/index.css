@@ -1,7 +1,3 @@
-body{
-    color: blue;
-    background: url('./2.png');
-}
 @import './common.css';
 
 .container{
@@ -9,3 +5,17 @@ body{
     background-color: green;
 }
 
+body{
+    color: blue;
+    background: url('./2.png') no-repeat;
+}
+
+
+
+
+@media (max-width: 960px) {
+    .container{
+        color: red;
+        background-color: blue;
+    }
+}
