@@ -33,4 +33,5 @@ img {
 
 ### plugins目录
 plugins目录里面都是各种手写常见的webpack plugin，目前手写的plugin有：
+- MediaExtractPlugin。提取CSS文件中多媒体查询CSS并单独打包，在响应式设计系统中能够减少css文件大小，提高加载效率。
 - mini-css-extract-plugin 对应的官方版本0.9.0。进行中

@@ -5,7 +5,8 @@ const MediaExtractPlugin = require('./plugins/MediaExtractPlugin')
 module.exports = {
   mode: "development",
   entry: './src/index.js',
-  devtool: "source-map",
+  // devtool: "source-map",
+  devtool: "none",
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
