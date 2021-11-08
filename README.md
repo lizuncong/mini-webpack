@@ -33,4 +33,4 @@ img {
 
 ### plugins目录
 plugins目录里面都是各种手写常见的webpack plugin，目前手写的plugin有：
-- mini-css-extract-plugin 对应的官方版本0.9.0
+- mini-css-extract-plugin 对应的官方版本0.9.0。进行中
