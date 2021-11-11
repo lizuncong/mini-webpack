@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const MediaExtractPlugin = require('./plugins/MediaExtractPlugin')
+const Plugin1 = require('./plugins/plugin1')
 module.exports = {
   mode: "development",
   entry: './src/index.js',
@@ -16,10 +17,10 @@ module.exports = {
   },
   module: {
     rules: [
-      // {
-      //   test: /\.js$/,
-      //   use: ['loader2', 'loader1']
-      // },
+      {
+        test: /\.js$/,
+        use: ['loader2', 'loader1']
+      },
       {
         test: /\.js$/,
         use: {
@@ -69,8 +70,9 @@ module.exports = {
     ]
   },
   plugins: [
-    new MiniCssExtractPlugin(),
-    new MediaExtractPlugin(),
+    // new MiniCssExtractPlugin(),
+    // new MediaExtractPlugin(),
+    new Plugin1(),
     new HtmlWebpackPlugin({
       template: "./index.html"
     })

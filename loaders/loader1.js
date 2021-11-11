@@ -21,12 +21,13 @@
 
 function loader(source, ...rest){
     console.log('=====loader1=========')
+    debugger;
     return source
 }
 
-loader.pitch = function loader(request) {
-    console.log('loader 1 pitch', request)
-    return 'test'
-};
+// loader.pitch = function loader(request) {
+//     console.log('loader 1 pitch', request)
+//     return 'test'
+// };
 
 module.exports = loader
