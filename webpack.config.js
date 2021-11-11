@@ -1,7 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const MediaExtractPlugin = require('./plugins/MediaExtractPlugin')
+// const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+// const MediaExtractPlugin = require('./plugins/MediaExtractPlugin')
 const Plugin1 = require('./plugins/plugin1')
 module.exports = {
   mode: "development",
@@ -56,7 +56,7 @@ module.exports = {
         use: [
           // path.resolve(__dirname, 'loaders', 'style-loader'),
           // 'style-loader',
-          MiniCssExtractPlugin.loader,
+          // MiniCssExtractPlugin.loader,
           // path.resolve(__dirname, 'loaders', 'css-loader'),
           {
             loader: 'css-loader',
