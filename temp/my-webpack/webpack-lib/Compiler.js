@@ -46,20 +46,17 @@ class Compiler extends Tapable {
             mkdirp(this.options.output.path, emitFiles);
         })
     }
-    run(finallyCallback){
+    
+    run(finalCallback){
         const onCompiled = (err, compilation) => { // 编译完成后的回调
             this.emitAssets(compilation, (err) => {
                 const stats = new Stats(compilation)
                 this.hooks.done.callAsync(stats, err => {
-                    return finallyCallback()
+                    return finalCallback()
                 })
             })
         }
-        this.hooks.beforeRun.callAsync(this, err => {
-            this.hooks.run.callAsync(this, err => {
-                this.compile(onCompiled)
-            })
-        })
+        this.compile(onCompiled)
     }
 
     newCompilation(params){
@@ -71,14 +68,12 @@ class Compiler extends Tapable {
 
 
     compile(onCompiled){
-        this.hooks.beforeCompile.callAsync({}, err => {
-            this.hooks.compile.call()
-            const compilation = this.newCompilation()
-            this.hooks.make.callAsync(compilation, err => {
-                compilation.seal(err => { // 通过模块生成代码块
-                    this.hooks.afterCompile.callAsync(compilation, err => {
-                        return onCompiled(err, compilation)  // 写入文件系统
-                    })
+        const compilation = this.newCompilation()
+        // SingleEntryPlugin 监听了make事件，触发compilation.addEntry方法
+        this.hooks.make.callAsync(compilation, err => {
+            compilation.seal(err => { // 通过模块生成代码块
+                this.hooks.afterCompile.callAsync(compilation, err => {
+                    return onCompiled(err, compilation)  // 写入文件系统
                 })
             })
         })
