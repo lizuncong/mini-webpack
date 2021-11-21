@@ -39,8 +39,18 @@ class Compilation extends Tapable {
         this.assets = {}
     }
 
+    // context: '/Users/lizuncong/Documents/手写源码系列/mini-webpack'
+    // entry: 
+    // { module:null
+    // optional:false
+    // request:'./src/index.js'
+    // type (get):ƒ type() {\n\t\treturn "single entry";\n\t}
+    // userRequest:'./src/index.js'
+    // __proto__:ModuleDependency
+    // weak:false
+    // }
+    // name: main
     addEntry(context, entry, name, finallyCallback){
-        this.hooks.addEntry.call(entry, name) // ./src/index.js main
         this._addModuleChain(context, entry, name);
         finallyCallback()
     }

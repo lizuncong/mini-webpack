@@ -73,8 +73,8 @@ module.exports = {
     // new MiniCssExtractPlugin(),
     // new MediaExtractPlugin(),
     new Plugin1(),
-    new HtmlWebpackPlugin({
-      template: "./index.html"
-    })
+    // new HtmlWebpackPlugin({
+    //   template: "./index.html"
+    // })
   ]
 };
