@@ -50,20 +50,44 @@ class Compilation extends Tapable {
     // weak:false
     // }
     // name: main
-    addEntry(context, entry, name, finallyCallback){
-        this._addModuleChain(context, entry, name);
-        finallyCallback()
+    addEntry(context, entry, name, callback){
+        // this._addModuleChain(context, entry, name);
+        // callback()
+        this._addModuleChain(
+            context, 
+            entry,
+            module => {
+                // 将编译后的入口模块添加到入口数组中
+                this.entries.push(module)
+            },
+            (err, module) => {
+                callback(null, module)
+            }
+        )
     }
 
-    _addModuleChain(context, entry, name){
-        const module = normalModuleFactory.create({
-            context: this.context, 
-            name, // 所属的代码块的名字 main
-            request: path.posix.join(context, entry) // 此模块的绝对路径
-        })
-        module.build(this)
-        // 把编译后的入口模块添加到入口数组
-        this.entries.push(module)
+    _addModuleChain(context, entry, onModule, callback){
+        // const module = normalModuleFactory.create({
+        //     context: this.context, 
+        //     name, // 所属的代码块的名字 main
+        //     request: path.posix.join(context, entry) // 此模块的绝对路径
+        // })
+        // module.build(this)
+        // // 把编译后的入口模块添加到入口数组
+        // this.entries.push(module)
+        normalModuleFactory.create(
+            {
+                contextInfo: {
+                    issuer: "",
+                    compiler: this.compiler.name
+                },
+                context,
+                dependencies: [entry]
+            },
+            (err, module) => {
+
+            }
+        )
     }
 
     buildDependencies(module, dependencies){

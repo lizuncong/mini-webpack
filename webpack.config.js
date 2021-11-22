@@ -1,5 +1,5 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+// const HtmlWebpackPlugin = require('html-webpack-plugin')
 // const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // const MediaExtractPlugin = require('./plugins/MediaExtractPlugin')
 const Plugin1 = require('./plugins/plugin1')
@@ -12,61 +12,67 @@ module.exports = {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
   },
-  resolveLoader: {
-    modules: ['node_modules', path.resolve(__dirname, 'loaders')],
-  },
+  // resolveLoader: {
+  //   modules: ['node_modules', path.resolve(__dirname, 'loaders')],
+  // },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        use: ['loader2', 'loader1']
-      },
+      // {
+      //   test: /\.js$/,
+      //   use: ['loader2', 'loader1']
+      // },
       {
         test: /\.js$/,
         use: {
-          loader: path.resolve(__dirname, 'loaders', 'babel-loader'),
-          options: {
-            presets: [
-              '@babel/preset-env'
-            ]
-          }
+          loader: path.resolve(__dirname, 'loaders', 'loader1'),
         }
       },
-      {
-        test: /\.(png|jpg)$/,
-        use: path.resolve(__dirname, 'loaders', 'file-loader')
-      },
-      {
-        test: /\.less$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-              sourceMap: false
-            }
-          },
-          'less-loader'
-          // path.resolve(__dirname, 'loaders', 'less-loader')
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          // path.resolve(__dirname, 'loaders', 'style-loader'),
-          // 'style-loader',
-          // MiniCssExtractPlugin.loader,
-          // path.resolve(__dirname, 'loaders', 'css-loader'),
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: false,
-              // modules: true,
-            }
-          },
-        ]
-      }
+      // {
+      //   test: /\.js$/,
+      //   use: {
+      //     loader: path.resolve(__dirname, 'loaders', 'babel-loader'),
+      //     options: {
+      //       presets: [
+      //         '@babel/preset-env'
+      //       ]
+      //     }
+      //   }
+      // },
+      // {
+      //   test: /\.(png|jpg)$/,
+      //   use: path.resolve(__dirname, 'loaders', 'file-loader')
+      // },
+      // {
+      //   test: /\.less$/,
+      //   use: [
+      //     'style-loader',
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         importLoaders: 1,
+      //         sourceMap: false
+      //       }
+      //     },
+      //     'less-loader'
+      //     // path.resolve(__dirname, 'loaders', 'less-loader')
+      //   ]
+      // },
+      // {
+      //   test: /\.css$/,
+      //   use: [
+      //     // path.resolve(__dirname, 'loaders', 'style-loader'),
+      //     // 'style-loader',
+      //     // MiniCssExtractPlugin.loader,
+      //     // path.resolve(__dirname, 'loaders', 'css-loader'),
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         sourceMap: false,
+      //         // modules: true,
+      //       }
+      //     },
+      //   ]
+      // }
     ]
   },
   plugins: [

@@ -69,6 +69,7 @@ class Compiler extends Tapable {
 
     compile(onCompiled){
         const compilation = this.newCompilation()
+        // 创建完compilation后，触发compilation的addEntry方法。
         // SingleEntryPlugin 监听了make事件，触发compilation.addEntry方法
         this.hooks.make.callAsync(compilation, err => {
             compilation.seal(err => { // 通过模块生成代码块
