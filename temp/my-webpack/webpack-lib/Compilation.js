@@ -85,7 +85,11 @@ class Compilation extends Tapable {
                 dependencies: [entry]
             },
             (err, module) => {
-
+                if(err){
+                    console.error(err)
+                }
+                onModule(module)
+                module.build(this.options, this, this.inputFileSystem)
             }
         )
     }
