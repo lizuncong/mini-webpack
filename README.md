@@ -39,3 +39,28 @@ plugins目录里面都是各种手写常见的webpack plugin，目前手写的pl
 
 ### mini-pack目录
 手写webpack主流程源码
+
+
+### 调用流程
+
+SingleEntryPlugin注册compiler.hooks.make插件，插件调用
+compilation.addEntry方法，这是webpack编译的入口
+
+
+Compiler实例调用this.hooks.make.callAsync方法，触发compilation.addEntry(context, dep, name, callback)方法执行
+
+其中context是当前项目目录，dep是一个包含入口文件的对象，包含的基本属性有request: './src/index.js', userRequest: './src/index.js'，name是打包后的文件名，默认是 'main'
+
+
+Compilation.addEntry调用Compilation._addModuleChain方法
+
+Compilation._addModuleChain调用NormalModuleFactory.create方法，create方法调用NormalModuleFactory.hooks.resolver钩子开始解析模块，resolver插件主要接受一个对象：
+const result = {
+    request: './src/index.js',
+    dependencies: [dep], // dep是addEntry方法的第二个参数dep
+    contextInfo: {issuer: '', compiler: undefined},
+    context:'/Users/lizuncong/Documents/手写源码系列/mini-webpack'
+}
+
+NormalModuleFactory.hooks.resolver插件主要逻辑如下：
+- 调用enhanced-resolve/lib/Resolver.js中的resolve方法
