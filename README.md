@@ -64,3 +64,114 @@ const result = {
 
 NormalModuleFactory.hooks.resolver插件主要逻辑如下：
 - 调用enhanced-resolve/lib/Resolver.js中的resolve方法
+
+- 以解析 ./src/index.js 文件为例，从enhanced-resolve/lib/Resolver.js文件的resolve方法开始， 构造doResolve方法的第二个参数
+const obj = {
+    context,
+    path,
+    request,
+}
+这个obj用于后续收集所有插件的处理结果
+
+- resolve调用this.doResolve方法开始解析
+    + resolve AsyncSeriesBailHook  
+        + UnsafeCachePlugin判断是否有这个模块的缓存，如果有则直接返回，如果没有则调用下一个插件处理, obj参数不变
+    + newResolve AsyncSeriesBailHook
+        + ParsePlugin处理，这个主要是判断路径是否包含query参数，如 './src/index.js?a=1&b=2'，以及判断请求路径是否是模块或者目录，obj参数变为：
+        obj = {
+            context: {
+                compiler:undefined,
+                issuer:''
+            }
+            path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
+            // parsePlugin处理后的参数如下：
+            query:'',
+            request:'./src/index.js',
+            module:false,
+            file:false,
+            directory:false,
+        }
+    + parsedResolve AsyncSeriesBailHook
+        + DescriptionFilePlugin，获取context下面的package.json文件内容，经过DescriptionFilePlugin处理后，obj参数变为：
+        obj = { 
+            context: {
+                compiler:undefined,
+                issuer:''
+            },
+            path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
+            // parsePlugin处理后的参数如下：
+            query:'',
+            request:'./src/index.js',
+            module:false,
+            file:false,
+            directory:false,
+            // DescriptionFilePlugin处理后的参数如下：
+            descriptionFileData, // 这个字段的内容就是package.json文件的内容
+            descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
+            relativePath:'.'
+            descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack'
+        }
+            
+            + describedResolve AsyncSeriesBailHook。DescriptionFilePlugin处理完成后，直接调用describedResolve这个hook的执行，再根据这个hook的执行结果判断是否执行NextPlugin。describedResolve包含44个plugin
+
+                + 1个AliasFieldPlugin。给obj参数注入了三个变量
+                    const obj = {
+                        context: {
+                            compiler:undefined,
+                            issuer:''
+                        },
+                        path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
+                        // parsePlugin处理后的参数如下：
+                        query:'',
+                        request:'./src/index.js',
+                        module:false,
+                        file:false,
+                        directory:false,
+                        // DescriptionFilePlugin处理后的参数如下：
+                        descriptionFileData, // 这个字段的内容就是package.json文件的内容
+                        descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
+                        relativePath:'.'
+                        descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack' 
+                        //经过aliasFieldPlugin处理的参数如下：
+                        __innerRequest:'./src/index.js'
+                        __innerRequest_relativePath:'.'
+                        __innerRequest_request:'./src/index.js'
+                    }
+                + 40个AliasPlugin。
+                + 1个ModuleKindPlugin
+                + 1个JoinRequestPlugin，经过JoinRequestPlugin处理后的obj参数如下:
+                    const obj = {
+                        context: {
+                            compiler:undefined,
+                            issuer:''
+                        },
+                        path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
+                        // parsePlugin处理后的参数如下：
+                        query:'',
+                        request:'./src/index.js',
+                        module:false,
+                        file:false,
+                        directory:false,
+                        // DescriptionFilePlugin处理后的参数如下：
+                        descriptionFileData, // 这个字段的内容就是package.json文件的内容
+                        descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
+                        relativePath:'.'
+                        descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack' 
+                        //经过aliasFieldPlugin处理的参数如下：
+                        __innerRequest:'./src/index.js'
+                        __innerRequest_relativePath:'.'
+                        __innerRequest_request:'./src/index.js',
+                       // JoinRequestPlugin处理的覆盖了path,// relativePath,request属性 
+                       path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/src/index.js',
+                       relativePath:'./src/index.js',
+                        request:undefined
+                    }
+                    + JoinRequestPlugin继续调用 relative AsyncSeriesBailHook. 这个hook包括DescriptionFilePlugin以及NextPlugin
+                        + 
+
+
+                + 1个RootPlugin
+
+        + NextPlugin 
+
+在整个模块的resolve过程中，obj和callback回调都会在整个插件流中传递，和resolve相关的基本都是AsyncSeriesBailHook异步串行保险式钩子。
