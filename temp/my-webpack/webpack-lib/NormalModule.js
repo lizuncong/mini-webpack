@@ -5,6 +5,7 @@ const types = require('@babel/types')
 const generator = require('@babel/generator').default
 const traverse = require('@babel/traverse').default
 const ejs = require('ejs')
+const { loader } = require('mini-css-extract-plugin')
 class NormalModule {
     constructor({ name, loaders, request, context }){
         this.loaders = loaders;
@@ -75,7 +76,16 @@ class NormalModule {
             _module: {},
             webpack: true,
         }
-        // 执行loaders
+        // 执行loaders，首先构造loaderContext
+        const loaderContext = {}
+        let resource = ''
+        this.loaders.forEach(fn => {
+            resource = fn.apply(loaderContext, [resource])
+        });
+
+        // createSource
+        this._source = this.createSource()
+        // 解析源码
     }
 }
 
