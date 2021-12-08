@@ -17,6 +17,7 @@ const webpack = options => {
         });
     }
     
+    // 主要是注册插件，其中最主要是给compiler.hooks.compilation注册插件
     compiler.options = new WebpackOptionsApply().process(options, compiler)
 
     return compiler

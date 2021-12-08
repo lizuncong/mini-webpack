@@ -24,6 +24,10 @@ class WebpackOptionsApply{
         // 挂载入口点，监听make事件
         new EntryOptionPlugin().apply(compiler)
         compiler.hooks.entryOption.call(options.context, options.entry)
+    
+        
+        // compiler.hooks.afterPlugins.call(compiler);
+        return options;
     }
 }
 
