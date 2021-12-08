@@ -1,20 +1,24 @@
 const NodeEnvironmentPlugin = require('./node/NodeEnvironmentPlugin')
+const Compiler = require('./Compiler')
 const WebpackOptionsApply = require('./WebpackOptionsApply')
+const WebpackOptionsDefaulter = require('./WebpackOptionsDefaulter')
+
 const webpack = options => {
-    let compiler;
-    compiler = new Compiler(options.context);
-	compiler.options = options;
-    // 设置读写文件系统
-    new NodeEnvironmentPlugin({
-        infrastructureLogging: options.infrastructureLogging
-    }).apply(compiler);
-    for (const plugin of options.plugins) {
-        plugin.apply(compiler); 
+    // 处理webpack options默认值
+    options = new WebpackOptionsDefaulter().process(options)
+    const compiler = new Compiler(options.context);
+    compiler.options = options;
+    // 给comlier设置读写文件，日志输出属性值
+    new NodeEnvironmentPlugin().apply(compiler)
+    // 注册插件
+    if(options.plugins && Array.isArray(options.plugins)){
+        options.plugins.forEach(plugin => {
+            plugin.apply(compiler)
+        });
     }
-    // 设置文件读写系统后，需要发布通知
-    compiler.hooks.environment.call();
-    compiler.hooks.afterEnvironment.call();
-    compiler.options = new WebpackOptionsApply().process(options, compiler);
+    
+    compiler.options = new WebpackOptionsApply().process(options, compiler)
+
     return compiler
 }
 
