@@ -5,6 +5,7 @@ const {
 	AsyncParallelHook,
 	AsyncSeriesHook
 } = require("tapable");
+const ResolverFactory = require("./ResolverFactory");
 const NormalModuleFactory = require('./NormalModuleFactory')
 const Compilation = require('./Compilation')
 // const Stats = require('./Stats')
@@ -28,7 +29,7 @@ class Compiler extends Tapable {
         }
         this.name = undefined;
 
-        // this.resolverFactory = new ResolverFactory();
+        this.resolverFactory = new ResolverFactory();
         this.outputPath = "";
         this.outputFileSystem = null;
 		this.inputFileSystem = null;
@@ -66,7 +67,7 @@ class Compiler extends Tapable {
     newCompilation(params){
         const compilation = new Compilation(this)
         // this.hooks.thisCompilation.call(compilation, params)
-        // this.hooks.compilation.call(compilation, params)
+        this.hooks.compilation.call(compilation, params)
         return compilation
     }
 

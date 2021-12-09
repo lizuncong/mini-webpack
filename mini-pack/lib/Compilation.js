@@ -1,9 +1,5 @@
 const {
 	Tapable,
-	SyncHook,
-	SyncBailHook,
-	AsyncParallelHook,
-	AsyncSeriesHook
 } = require("tapable");
 const path = require('path')
 // const Chunk = require('./Chunk')
@@ -16,29 +12,29 @@ class Compilation extends Tapable {
     constructor(compiler){
         super();
         this.compiler = compiler
-        this.options = compiler.options // webpack options
-        this.context = compiler.context
-        this.inputFileSystem = compiler.inputFileSystem
-        this.outputFileSystem = compiler.outputFileSystem
+        // this.options = compiler.options // webpack options
+        // this.context = compiler.context
+        // this.inputFileSystem = compiler.inputFileSystem
+        // this.outputFileSystem = compiler.outputFileSystem
         this.hooks = {
-            addEntry: new SyncHook(['entry', 'name']),
-            seal: new SyncHook([]),
-            beforeChunks: new SyncHook([]),
-            afterChunks: new SyncHook([])
+            // addEntry: new SyncHook(['entry', 'name']),
+            // seal: new SyncHook([]),
+            // beforeChunks: new SyncHook([]),
+            // afterChunks: new SyncHook([])
         }
         this.dependencyFactories = new Map();
 
         // 代表我们的入口，里面放着所有的入口模块
         this.entries = []
 
-        this.modules = [] // 这是一个模块的数组，里面都是模块实例
-        this._modules = {} // 这是一个对象 key是模块的绝对路径，值是模块的实例
+        // this.modules = [] // 这是一个模块的数组，里面都是模块实例
+        // this._modules = {} // 这是一个对象 key是模块的绝对路径，值是模块的实例
     
-        this.chunks = []
+        // this.chunks = []
 
         // this.files = []
 
-        this.assets = {}
+        // this.assets = {}
     }
 
 
@@ -57,28 +53,22 @@ class Compilation extends Tapable {
         )
     }
 
-    _addModuleChain(context, entry, onModule, callback){
-        console.log('addModuleChain..', context, entry)
-        callback();
-        return;
-        // const module = normalModuleFactory.create({
-        //     context: this.context, 
-        //     name, // 所属的代码块的名字 main
-        //     request: path.posix.join(context, entry) // 此模块的绝对路径
-        // })
-        // module.build(this)
-        // // 把编译后的入口模块添加到入口数组
-        // this.entries.push(module)
-        normalModuleFactory.create(
+    _addModuleChain(context, dependency, onModule, callback){
+        const Dep = dependency.constructor
+        const moduleFactory = this.dependencyFactories.get(Dep)
+        moduleFactory.create(
             {
                 contextInfo: {
                     issuer: "",
                     compiler: this.compiler.name
                 },
                 context,
-                dependencies: [entry]
+                dependencies: [dependency]
             },
             (err, module) => {
+                callback();
+                return;
+                // TODO 待实现
                 if(err){
                     console.error(err)
                 }
