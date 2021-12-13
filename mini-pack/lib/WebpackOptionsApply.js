@@ -24,7 +24,18 @@ class WebpackOptionsApply{
         // 挂载入口点，监听make事件
         new EntryOptionPlugin().apply(compiler)
         compiler.hooks.entryOption.call(options.context, options.entry)
-    
+        
+        compiler.resolverFactory.hooks.resolveOptions
+        .for("loader")
+        .tap("WebpackOptionsApply", resolveOptions => {
+            return Object.assign(
+                {
+                    fileSystem: compiler.inputFileSystem
+                },
+                options.resolveLoader,
+                resolveOptions
+            );
+        });
         
         // compiler.hooks.afterPlugins.call(compiler);
         return options;
