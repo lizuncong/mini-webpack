@@ -12,7 +12,6 @@
         this.context = context || "";
         this.resolverFactory = resolverFactory;
         this.ruleSet = new RuleSet(options.defaultRules.concat(options.rules));
-        console.log('NormalModuleFactory constructor====', this.ruleSet)
      }
      create(data, callback){
 		const dependencies = data.dependencies;
@@ -20,8 +19,25 @@
         const resolveOptions = data.resolveOptions || {};
         const request = dependencies[0].request;
 		const contextInfo = data.contextInfo || {};
-        console.log('NormalModuleFactory.create====', data)
+        const normalResolver = this.getResolver("normal", data.resolveOptions);
+        normalResolver.resolve(
+            contextInfo,
+            context,
+            request,
+            {},
+            (err, resource, resourceResolveData) => {
+
+            }
+        )
      }
+
+
+     getResolver(type, resolveOptions) {
+		return this.resolverFactory.get(
+			type,
+			resolveOptions || {}
+		);
+	}
  
  }
  

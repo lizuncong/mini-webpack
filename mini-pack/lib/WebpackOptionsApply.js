@@ -36,6 +36,17 @@ class WebpackOptionsApply{
                 resolveOptions
             );
         });
+        compiler.resolverFactory.hooks.resolveOptions
+        .for("normal")
+        .tap("WebpackOptionsApply", resolveOptions => {
+            return Object.assign(
+                {
+                    fileSystem: compiler.inputFileSystem
+                },
+                options.resolveLoader,
+                resolveOptions
+            );
+        });
         
         // compiler.hooks.afterPlugins.call(compiler);
         return options;
