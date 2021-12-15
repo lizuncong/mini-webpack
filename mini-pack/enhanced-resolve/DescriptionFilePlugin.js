@@ -27,7 +27,11 @@ module.exports = class DescriptionFilePlugin {
 							descriptionFileRoot: directory,
 							relativePath: '.'
 						}
-						
+						// 经过aliasFieldPlugin处理后
+						obj.__innerRequest_request = obj.request;
+						obj.__innerRequest = obj.request;
+						obj.__innerRequest_relativePath = obj.relativePath;
+						console.log('fileSystem==', obj)
 						// 交给describedResolve钩子处理，这个钩子会按顺序跑下面的钩子
 						// 1.先跑AliasFieldPlugin
 						// 2.再跑40个AliasPlugin
