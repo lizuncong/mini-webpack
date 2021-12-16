@@ -61,7 +61,7 @@ class Resolver extends Tapable {
         }
         // console.log('doResolve===', hook, request, innerContext, resolveContext)
         return hook.callAsync(request, innerContext, (err, result) => {
-            console.log('doResolve...', hook.name, err, result)
+            console.log('doResolve...', hook.name, result)
         })
     }
 

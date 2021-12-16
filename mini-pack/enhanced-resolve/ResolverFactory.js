@@ -4,6 +4,7 @@ const ParsePlugin = require('./ParsePlugin')
 const DescriptionFilePlugin = require('./DescriptionFilePlugin')
 const AliasFieldPlugin = require('./AliasFieldPlugin')
 const JoinRequestPlugin = require('./JoinRequestPlugin')
+const ResultPlugin = require('./ResultPlugin')
 exports.createResolver = function(options) {
 	let modules = ["node_modules"];
 	const descriptionFiles = ["package.json"];
@@ -19,7 +20,7 @@ exports.createResolver = function(options) {
 
 	// 为resolver增加钩子
 	resolver.ensureHook("resolve");
-	// resolver.ensureHook("parsedResolve");
+	resolver.ensureHook("resolved");
 
 	plugins.push(new UnsafeCachePlugin(
 			"resolve", // 当前钩子
@@ -46,10 +47,11 @@ exports.createResolver = function(options) {
 		new DescriptionFilePlugin(
 			"relative",
 			descriptionFiles,
-			"describedRelative"
+			"resolved"
 		)
 	);
-	// plugins.push(new NextPlugin("relative", "describedRelative"));
+	plugins.push(new ResultPlugin(resolver.hooks.resolved));
+
 
 	plugins.forEach(plugin => {
 		plugin.apply(resolver);

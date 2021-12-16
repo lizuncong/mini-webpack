@@ -27,7 +27,6 @@ module.exports = class DescriptionFilePlugin {
 							descriptionFileRoot: directory,
 							relativePath: '.'
 						}
-						console.log('DescriptionFilePlugin==', target)
 						// 交给describedResolve钩子处理，这个钩子会按顺序跑下面的钩子
 						// 1.先跑AliasFieldPlugin, 经过aliasFieldPlugin处理后
 						// 2.再跑40个AliasPlugin，这个对主流程没什么处理
@@ -41,7 +40,7 @@ module.exports = class DescriptionFilePlugin {
 							resolveContext,
 							(err, result) => {
 								// TODO
-								console.log('target.name', target.name)
+								// console.log('target.name', target.name)
 							}
 						)
 						
