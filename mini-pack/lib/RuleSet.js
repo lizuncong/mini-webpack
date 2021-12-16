@@ -1,3 +1,22 @@
+/**
+ * rules: [
+  { type: 'javascript/auto', resolve: {} },
+  {
+    test: /\.mjs$/i,
+    type: 'javascript/esm',
+    resolve: { mainFields: [Array] }
+  },
+  { test: /\.json$/i, type: 'json' },
+  { test: /\.wasm$/i, type: 'webassembly/experimental' },
+  {
+    test: /\.js$/,
+    use: {
+      loader: '/Users/lizuncong/Documents/手写源码系列/mini-webpack/loaders/loader1'
+    }
+  }
+]
+ * **/
+
 module.exports = class RuleSet {
 	constructor(rules) {
 		this.references = Object.create(null);
@@ -20,12 +39,25 @@ module.exports = class RuleSet {
                 newRule.use = [newItem]
             }
             Object.keys(rule).filter(key => {
-                return !['test'].includes(key)
+                return !['test', 'use'].includes(key)
             }).forEach(key => {
                 newRule[key] = rule[key]
             })
             return newRule;
         })
+    }
+    exec(data){
+        const result = [];
+        this.rules.forEach(rule => {
+            if (rule.resource && !rule.resource(data.resource)) return false;
+            console.log(rule)
+            if(rule.use){
+                rule.use.forEach(use => {
+                    console.log(use)
+                })
+            }
+        })
+        return result
     }
 
 };

@@ -39,8 +39,8 @@ module.exports = class DescriptionFilePlugin {
 							obj,
 							resolveContext,
 							(err, result) => {
-								// TODO
-								// console.log('target.name', target.name)
+								if(err) return callback(err);
+								callback(null, result)
 							}
 						)
 						

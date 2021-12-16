@@ -48,7 +48,13 @@ class Resolver extends Tapable {
             },
             {},
             (err, result) => {
-                // TODO
+                result.__innerRequest_relativePath = result.relativePath = result.__innerRequest_request;
+                result.__innerRequest_request = undefined
+                callback(
+                    null,
+                    result.path,
+                    result
+                )
             }
         )
     }
@@ -61,7 +67,9 @@ class Resolver extends Tapable {
         }
         // console.log('doResolve===', hook, request, innerContext, resolveContext)
         return hook.callAsync(request, innerContext, (err, result) => {
-            console.log('doResolve...', hook.name, result)
+           if(err) return callback(err);
+           if(result) return callback(null, result);
+           callback()
         })
     }
 

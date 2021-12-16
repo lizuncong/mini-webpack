@@ -20,13 +20,21 @@
         const request = dependencies[0].request;
 		const contextInfo = data.contextInfo || {};
         const normalResolver = this.getResolver("normal", data.resolveOptions);
+        // 解析模块，获取文件绝对路径
         normalResolver.resolve(
             contextInfo,
             context,
             request,
             {},
             (err, resource, resourceResolveData) => {
-
+                // 提取模块 './src/index.js' 对应的webpack loader
+                const result = this.ruleSet.exec({
+                    resource,
+                    realResource: resource,
+                    resourceQuery: "",
+                    issuer: contextInfo.issuer,
+					compiler: contextInfo.compiler
+                })
             }
         )
      }

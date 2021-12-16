@@ -21,7 +21,9 @@ module.exports = class UnsafeCachePlugin {
 					request,
 					resolveContext,
 					(err, result) => {
-						// TODO
+						if (err) return callback(err);
+						if (result) return callback(null, (this.cache[request.request] = result));
+						callback();
 					}
 				)
 			});
