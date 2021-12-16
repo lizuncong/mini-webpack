@@ -42,6 +42,14 @@ exports.createResolver = function(options) {
 	if (preferAbsolute) {
 		plugins.push(new JoinRequestPlugin("describedResolve", "relative"));
 	}
+	plugins.push(
+		new DescriptionFilePlugin(
+			"relative",
+			descriptionFiles,
+			"describedRelative"
+		)
+	);
+	// plugins.push(new NextPlugin("relative", "describedRelative"));
 
 	plugins.forEach(plugin => {
 		plugin.apply(resolver);

@@ -14,9 +14,9 @@ module.exports = class DescriptionFilePlugin {
 			.tapAsync(
 				"DescriptionFilePlugin",
 				(request, resolveContext, callback) => {
-					const directory = request.path;
+					const directory = request.descriptionFileRoot || request.path;
 					const pkgFilename = this.filenames[0]
-					const descriptionFilePath = path.join(directory, pkgFilename)
+					const descriptionFilePath =  path.join(directory, pkgFilename)
 					resolver.fileSystem.readFile(descriptionFilePath, (err, buffer) => {
 						if (err) return callback(err);
 						const data = JSON.parse(buffer.toString("utf-8"));
@@ -27,13 +27,13 @@ module.exports = class DescriptionFilePlugin {
 							descriptionFileRoot: directory,
 							relativePath: '.'
 						}
-						console.log('descriptionFilePlugin===', target)
+						console.log('DescriptionFilePlugin==', target)
 						// 交给describedResolve钩子处理，这个钩子会按顺序跑下面的钩子
 						// 1.先跑AliasFieldPlugin, 经过aliasFieldPlugin处理后
 						// 2.再跑40个AliasPlugin，这个对主流程没什么处理
 						// 3.其次跑ModuleKindPlugin，这个对主流程没什么处理
 						// 4.完了跑JoinRequestPlugin，这个主要是处理path，relativePath，并调用resolver.doResolve继续解析
-						
+						// console.log('DescriptionFilePlugin===', target)
 						// 5.最后跑RootPlugin
 						resolver.doResolve(
 							target,
@@ -41,6 +41,7 @@ module.exports = class DescriptionFilePlugin {
 							resolveContext,
 							(err, result) => {
 								// TODO
+								console.log('target.name', target.name)
 							}
 						)
 						

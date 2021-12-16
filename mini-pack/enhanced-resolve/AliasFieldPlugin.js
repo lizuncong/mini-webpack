@@ -1,3 +1,4 @@
+const path = require('path')
 module.exports = class AliasFieldPlugin {
 	constructor(source, field, target) {
 		this.source = source;
@@ -10,7 +11,11 @@ module.exports = class AliasFieldPlugin {
 		resolver
 			.getHook(this.source)
 			.tapAsync("AliasFieldPlugin", (request, resolveContext, callback) => {
-                
+				request.__innerRequest_request = request.request;
+				request.__innerRequest_relativePath = request.relativePath;
+				// request.__innerRequest = path.join(request.relativePath, request.request)
+				request.__innerRequest = request.request
+				callback();
 			});
 	}
 };

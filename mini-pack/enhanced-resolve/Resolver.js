@@ -55,13 +55,13 @@ class Resolver extends Tapable {
 
     // request用于收集在解析过程中存储文件信息
     doResolve(hook, request, resolveContext, callback){
-        const stackLine = `${hook.name}: (${request.path}) ${request.request}`
+        const stackLine = `${hook.name}: (${request.path}) ${request.request || ''}`
         const innerContext = {
             stack: resolveContext.stack ? resolveContext.stack.concat([stackLine]) : [stackLine]
         }
         // console.log('doResolve===', hook, request, innerContext, resolveContext)
         return hook.callAsync(request, innerContext, (err, result) => {
-            // TODO
+            console.log('doResolve...', hook.name, err, result)
         })
     }
 
