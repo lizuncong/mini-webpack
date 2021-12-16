@@ -27,16 +27,13 @@ module.exports = class DescriptionFilePlugin {
 							descriptionFileRoot: directory,
 							relativePath: '.'
 						}
-						// 经过aliasFieldPlugin处理后
-						obj.__innerRequest_request = obj.request;
-						obj.__innerRequest = obj.request;
-						obj.__innerRequest_relativePath = obj.relativePath;
-						console.log('fileSystem==', obj)
+						console.log('descriptionFilePlugin===', target)
 						// 交给describedResolve钩子处理，这个钩子会按顺序跑下面的钩子
-						// 1.先跑AliasFieldPlugin
-						// 2.再跑40个AliasPlugin
-						// 3.其次跑ModuleKindPlugin
-						// 4.完了跑JoinRequestPlugin
+						// 1.先跑AliasFieldPlugin, 经过aliasFieldPlugin处理后
+						// 2.再跑40个AliasPlugin，这个对主流程没什么处理
+						// 3.其次跑ModuleKindPlugin，这个对主流程没什么处理
+						// 4.完了跑JoinRequestPlugin，这个主要是处理path，relativePath，并调用resolver.doResolve继续解析
+						
 						// 5.最后跑RootPlugin
 						resolver.doResolve(
 							target,

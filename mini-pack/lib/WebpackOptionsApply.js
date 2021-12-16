@@ -43,7 +43,7 @@ class WebpackOptionsApply{
                 {
                     fileSystem: compiler.inputFileSystem
                 },
-                options.resolveLoader,
+                options.resolve,
                 resolveOptions
             );
         });
