@@ -20,7 +20,7 @@
 
 
 function loader(source, ...rest){
-    console.log('=====loader1=========')
+    console.log('=====loader1 执行了=========\n\n')
     debugger;
     return source
 }

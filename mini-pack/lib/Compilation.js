@@ -12,9 +12,10 @@ class Compilation extends Tapable {
     constructor(compiler){
         super();
         this.compiler = compiler
-        // this.options = compiler.options // webpack options
+        this.resolverFactory = compiler.resolverFactory;
+        this.options = compiler.options // webpack options
         // this.context = compiler.context
-        // this.inputFileSystem = compiler.inputFileSystem
+        this.inputFileSystem = compiler.inputFileSystem
         // this.outputFileSystem = compiler.outputFileSystem
         this.hooks = {
             // addEntry: new SyncHook(['entry', 'name']),
@@ -66,14 +67,18 @@ class Compilation extends Tapable {
                 dependencies: [dependency]
             },
             (err, module) => {
-                callback();
-                return;
-                // TODO 待实现
-                if(err){
-                    console.error(err)
-                }
                 onModule(module)
-                module.build(this.options, this, this.inputFileSystem)
+                dependency.module = module
+                module.build(
+                    this.options,
+                    this,
+                    this.resolverFactory.get("normal", module.resolveOptions),
+                    this.inputFileSystem,
+                    error => {
+                        // TODO
+                        console.log('compilation.after.build')
+                    }
+                )
             }
         )
     }

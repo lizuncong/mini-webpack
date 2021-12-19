@@ -50,12 +50,27 @@ module.exports = class RuleSet {
         const result = [];
         this.rules.forEach(rule => {
             if (rule.resource && !rule.resource(data.resource)) return false;
-            console.log(rule)
+            const keys = Object.keys(rule).filter(key => {
+                return ![
+                    "resource",
+                    "rules",
+                    "use",
+                ].includes(key);
+            });
+            for (const key of keys) {
+                result.push({
+                    type: key,
+                    value: rule[key]
+                });
+            }
             if(rule.use){
                 rule.use.forEach(use => {
-                    console.log(use)
+                    result.push({
+                        type: 'use',
+                        value: use,
+                    })
                 })
-            }
+            } 
         })
         return result
     }

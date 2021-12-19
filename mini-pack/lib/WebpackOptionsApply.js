@@ -1,4 +1,5 @@
 const EntryOptionPlugin = require('./EntryOptionPlugin')
+const JavascriptModulesPlugin = require('./JavascriptModulesPlugin')
 class WebpackOptionsApply{
     process(options, compiler){
         compiler.outputPath = options.output.path;
@@ -15,7 +16,7 @@ class WebpackOptionsApply{
         // new FunctionModulePlugin().apply(compiler);
         // new NodeSourcePlugin(options.node).apply(compiler);
         // new LoaderTargetPlugin(options.target).apply(compiler);
-        // new JavascriptModulesPlugin().apply(compiler);
+        new JavascriptModulesPlugin().apply(compiler);
 		// new JsonModulesPlugin().apply(compiler);
 		// new WebAssemblyModulesPlugin({
 		// 	mangleImports: options.optimization.mangleWasmImports
