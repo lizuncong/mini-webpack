@@ -1,5 +1,6 @@
 
 const { runLoaders } =require('../loader-runner/LoaderRunner')
+const OriginalSource = require('../webpack-sources/OriginalSource')
 class NormalModule {
 	constructor({
 		type,
@@ -23,6 +24,7 @@ class NormalModule {
 		this.resource = resource;
 		this.matchResource = matchResource;
 		this.loaders = loaders;
+        this.dependencies = [];
 		if (resolveOptions !== undefined) this.resolveOptions = resolveOptions;
 	}
 	build(options, compilation, resolver, fs, callback){
@@ -42,7 +44,20 @@ class NormalModule {
             (err, result) => {
                 const resourceBuffer = result.resourceBuffer;
 				const source = result.result[0];
-                console.log('build==', source)
+                this._source = new OriginalSource(source, this.request)
+                this._sourceSize = null;
+                this._ast = null;
+                
+                const parseResult = this.parser.parse(
+                    this._source.source(),
+                    {
+                        current: this,
+                        module: this,
+                        compilation,
+                        options
+                    }
+                )
+                // console.log('normal module parse==', parseResult.module)
             }
         )
 	}
