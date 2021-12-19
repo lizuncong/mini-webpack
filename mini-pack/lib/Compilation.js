@@ -75,51 +75,87 @@ class Compilation extends Tapable {
                     this.resolverFactory.get("normal", module.resolveOptions),
                     this.inputFileSystem,
                     error => {
-                        // TODO
-                        console.log('compilation.after.build')
+                        this.processModuleDependencies(module, err => {
+                            if (err) return callback(err);
+                            callback(null, module);
+                        });
                     }
                 )
             }
         )
     }
 
-    buildDependencies(module, dependencies){
-        module.dependencies = dependencies.map(data => {
-            const childModule = normalModuleFactory.create(data)
-            return childModule.build(this)
+    processModuleDependencies(module, callback){
+        const sortedDependencies = [];
+
+        module.dependencies.forEach(dep => {
+            const factory = this.dependencyFactories.get(dep.constructor)
+            sortedDependencies.push({
+                factory,
+                dependencies: [dep]
+            })
         })
+        this.addModuleDependencies(module, sortedDependencies)
     }
 
-    seal(callback){
-        this.hooks.seal.call();
-        this.hooks.beforeChunks.call()
-        for(let entryModule of this.entries){
-            const chunk = new Chunk(entryModule)
-            this.chunks.push(chunk)
-            // 只要模块的名字和代码的名字一样，就说明这个模块属于这个代码块
-            chunk.modules = this.modules.filter(module => module.name === chunk.name)
-        }
-        this.hooks.afterChunks.call()
-        this.createChunkAssets()
-        callback()
+    addModuleDependencies(module, dependencies){
+        dependencies.forEach(item => {
+            const dependencies = item.dependencies;
+            const factory = item.factory
+            // console.log('module.context', module.context)
+            factory.create(
+                {
+                    contextInfo: {
+                        issuer: undefined,
+                        compiler: this.compiler.name
+                    },
+                    resolveOptions: module.resolveOptions,
+                    context: module.context,
+                    dependencies: dependencies
+                },
+                (err, dependentModule) => {
+                    console.log('dependentModule===', dependentModule)
+                }
+            )
+        })
     }
-    createChunkAssets(){
-        for(let i = 0; i < this.chunks.length; i++){
-            const chunk = this.chunks[i]
-            chunk.files = []
-            const file = chunk.name + '.js' // main.js
-            const source = render({
-                entryId: chunk.entryModule.moduleId, // 此代码块的入口模块ID
-                modules: chunk.modules
-            })
-            chunk.files.push(file)
-            this.emitAsset(file, source)
-        }
-    }
-    emitAsset(file, source){
-        this.assets[file] = source
-        this.files.push(file)
-    }
+    // buildDependencies(module, dependencies){
+    //     module.dependencies = dependencies.map(data => {
+    //         const childModule = normalModuleFactory.create(data)
+    //         return childModule.build(this)
+    //     })
+    // }
+
+    // seal(callback){
+    //     this.hooks.seal.call();
+    //     this.hooks.beforeChunks.call()
+    //     for(let entryModule of this.entries){
+    //         const chunk = new Chunk(entryModule)
+    //         this.chunks.push(chunk)
+    //         // 只要模块的名字和代码的名字一样，就说明这个模块属于这个代码块
+    //         chunk.modules = this.modules.filter(module => module.name === chunk.name)
+    //     }
+    //     this.hooks.afterChunks.call()
+    //     this.createChunkAssets()
+    //     callback()
+    // }
+    // createChunkAssets(){
+    //     for(let i = 0; i < this.chunks.length; i++){
+    //         const chunk = this.chunks[i]
+    //         chunk.files = []
+    //         const file = chunk.name + '.js' // main.js
+    //         const source = render({
+    //             entryId: chunk.entryModule.moduleId, // 此代码块的入口模块ID
+    //             modules: chunk.modules
+    //         })
+    //         chunk.files.push(file)
+    //         this.emitAsset(file, source)
+    //     }
+    // }
+    // emitAsset(file, source){
+    //     this.assets[file] = source
+    //     this.files.push(file)
+    // }
 }
 
 module.exports = Compilation

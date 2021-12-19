@@ -1,6 +1,18 @@
 
 const { runLoaders } =require('../loader-runner/LoaderRunner')
 const OriginalSource = require('../webpack-sources/OriginalSource')
+function dirname(path) {
+	if(path === "/") return "/";
+	var i = path.lastIndexOf("/");
+	var j = path.lastIndexOf("\\");
+	var i2 = path.indexOf("/");
+	var j2 = path.indexOf("\\");
+	var idx = i > j ? i : j;
+	var idx2 = i > j ? i2 : j2;
+	if(idx < 0) return path;
+	if(idx === idx2) return path.substr(0, idx + 1);
+	return path.substr(0, idx);
+}
 class NormalModule {
 	constructor({
 		type,
@@ -12,8 +24,10 @@ class NormalModule {
 		matchResource,
 		parser,
 		generator,
-		resolveOptions
+		resolveOptions,
+        context
 	}) {
+		this.context = dirname(resource);
 
 		// Info from Factory
 		this.request = request;
@@ -57,7 +71,7 @@ class NormalModule {
                         options
                     }
                 )
-                // console.log('normal module parse==', parseResult.module)
+                callback();
             }
         )
 	}

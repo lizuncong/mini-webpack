@@ -1,5 +1,7 @@
 const EntryOptionPlugin = require('./EntryOptionPlugin')
 const JavascriptModulesPlugin = require('./JavascriptModulesPlugin')
+const CommonJsPlugin = require("./dependencies/CommonJsPlugin");
+
 class WebpackOptionsApply{
     process(options, compiler){
         compiler.outputPath = options.output.path;
@@ -24,6 +26,7 @@ class WebpackOptionsApply{
 
         // 挂载入口点，监听make事件
         new EntryOptionPlugin().apply(compiler)
+        new CommonJsPlugin(options.module).apply(compiler);
         compiler.hooks.entryOption.call(options.context, options.entry)
         
         compiler.resolverFactory.hooks.resolveOptions
