@@ -48,6 +48,10 @@ class Resolver extends Tapable {
             },
             {},
             (err, result) => {
+                if(err){
+                    console.error('resolve.error==：', err)
+                    return;
+                }
                 result.__innerRequest_relativePath = result.relativePath = result.__innerRequest_request;
                 result.__innerRequest_request = undefined
                 callback(
@@ -61,6 +65,9 @@ class Resolver extends Tapable {
 
     // request用于收集在解析过程中存储文件信息
     doResolve(hook, request, resolveContext, callback){
+        // if(request.request && request.request.indexOf('./test') > -1){
+        //     console.log('target===', hook)
+        // }
         const stackLine = `${hook.name}: (${request.path}) ${request.request || ''}`
         const innerContext = {
             stack: resolveContext.stack ? resolveContext.stack.concat([stackLine]) : [stackLine]

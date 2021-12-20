@@ -1,5 +1,6 @@
 
 const path = require('path')
+const { cdUp } = require('./DescriptionFileUtils')
 module.exports = class DescriptionFilePlugin {
 	constructor(source, filenames, target) {
 		this.source = source; // parsedResolve 钩子
@@ -14,18 +15,35 @@ module.exports = class DescriptionFilePlugin {
 			.tapAsync(
 				"DescriptionFilePlugin",
 				(request, resolveContext, callback) => {
-					const directory = request.descriptionFileRoot || request.path;
+					let directory = request.descriptionFileRoot || request.path;
 					const pkgFilename = this.filenames[0]
-					const descriptionFilePath =  path.join(directory, pkgFilename)
-					resolver.fileSystem.readFile(descriptionFilePath, (err, buffer) => {
-						if (err) return callback(err);
+					let descriptionFilePath =  path.join(directory, pkgFilename)
+					const readPkgJSONFile = (filePath, callback) => {
+						resolver.fileSystem.readFile(filePath, (err, buffer) => {
+							if (err) {
+								// console.error('读取package.json文件失败', err.code)
+								directory = cdUp(directory)
+								descriptionFilePath = path.join(directory, pkgFilename)
+								readPkgJSONFile(descriptionFilePath, callback)
+								return;
+							};	
+							callback(buffer)
+						})
+					}
+
+					readPkgJSONFile(descriptionFilePath, buffer => {
 						const data = JSON.parse(buffer.toString("utf-8"));
 						const obj = {
 							...request,
 							descriptionFilePath: descriptionFilePath,
 							descriptionFileData: data,
 							descriptionFileRoot: directory,
-							relativePath: '.'
+							relativePath: "." + request.path
+								.substr(directory.length)
+								.replace(/\\/g, "/")
+						}
+						if(request.request && request.request.indexOf('./test') > -1){
+							console.log('obj===', obj)
 						}
 						// 交给describedResolve钩子处理，这个钩子会按顺序跑下面的钩子
 						// 1.先跑AliasFieldPlugin, 经过aliasFieldPlugin处理后
@@ -43,7 +61,6 @@ module.exports = class DescriptionFilePlugin {
 								callback(null, result)
 							}
 						)
-						
 					})
 				}
 			);
