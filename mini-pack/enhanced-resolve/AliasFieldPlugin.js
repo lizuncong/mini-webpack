@@ -13,8 +13,8 @@ module.exports = class AliasFieldPlugin {
 			.tapAsync("AliasFieldPlugin", (request, resolveContext, callback) => {
 				request.__innerRequest_request = request.request;
 				request.__innerRequest_relativePath = request.relativePath;
-				// request.__innerRequest = path.join(request.relativePath, request.request)
-				request.__innerRequest = request.request
+				request.__innerRequest = resolver.join(request.relativePath, request.request)
+				// request.__innerRequest = request.request
 				callback();
 			});
 	}

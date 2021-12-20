@@ -2,6 +2,7 @@ const Tapable = require("tapable/lib/Tapable");
 const SyncHook = require("tapable/lib/SyncHook");
 const AsyncSeriesBailHook = require("tapable/lib/AsyncSeriesBailHook");
 const AsyncSeriesHook = require("tapable/lib/AsyncSeriesHook");
+const memoryFsJoin = require("memory-fs/lib/join");
 
 function withName(name, hook) {
 	hook.name = name;
@@ -79,6 +80,10 @@ class Resolver extends Tapable {
            callback()
         })
     }
+
+    join(path, request) {
+	    return memoryFsJoin(path, request);
+	}
 
 }
 

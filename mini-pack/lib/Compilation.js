@@ -48,8 +48,7 @@ class Compilation extends Tapable {
                 this.entries.push(module)
             },
             (err, module) => {
-                callback();
-                // callback(null, module)
+                callback(null, module)
             }
         )
     }
@@ -95,10 +94,12 @@ class Compilation extends Tapable {
                 dependencies: [dep]
             })
         })
-        this.addModuleDependencies(module, sortedDependencies)
+        this.addModuleDependencies(module, sortedDependencies, callback)
     }
 
-    addModuleDependencies(module, dependencies){
+    addModuleDependencies(module, dependencies, callback){
+        if(!dependencies.length) callback()
+        let count = 0;
         dependencies.forEach(item => {
             const dependencies = item.dependencies;
             const factory = item.factory
@@ -114,7 +115,19 @@ class Compilation extends Tapable {
                     dependencies: dependencies
                 },
                 (err, dependentModule) => {
-                    console.log('dependentModule===', dependentModule)
+                    dependentModule.build(
+                        this.options,
+                        this,
+                        this.resolverFactory.get("normal", module.resolveOptions),
+                        this.inputFileSystem,
+                        error => {
+                            this.processModuleDependencies(dependentModule, err => {
+                                if(++count === dependencies.length){
+                                    callback()
+                                }
+                            });
+                        }
+                    )
                 }
             )
         })

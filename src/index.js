@@ -10,6 +10,6 @@
 
 // document.head.appendChild(styleEle)
 
-const test = require('./test')
+const test = require('./test.js')
 
 console.log(test)
