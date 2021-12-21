@@ -32,7 +32,7 @@ class Compilation extends Tapable {
         this.modules = [] // 这是一个模块的数组，里面都是模块实例
 		this._modules = new Map(); // 存储的是已经编译过的模块实例
     
-        // this.chunks = []
+        this.chunks = []
 
         // this.files = []
 
@@ -189,21 +189,19 @@ class Compilation extends Tapable {
         callback();
     }
     seal(callback){
-        console.log('seal==', this._preparedEntrypoints)
+        for (const preparedEntrypoint of this._preparedEntrypoints) {
+            const name = preparedEntrypoint.name;
+            const chunk = this.addChunk(name);
+            chunk.entryModule = preparedEntrypoint.module;
+			chunk.name = name;
+        }
+        this.createChunkAssets();
     }
-    // seal(callback){
-    //     this.hooks.seal.call();
-    //     this.hooks.beforeChunks.call()
-    //     for(let entryModule of this.entries){
-    //         const chunk = new Chunk(entryModule)
-    //         this.chunks.push(chunk)
-    //         // 只要模块的名字和代码的名字一样，就说明这个模块属于这个代码块
-    //         chunk.modules = this.modules.filter(module => module.name === chunk.name)
-    //     }
-    //     this.hooks.afterChunks.call()
-    //     this.createChunkAssets()
-    //     callback()
-    // }
+    addChunk(name){
+        const chunk = new Chunk(name)
+        this.chunks.push(chunk)
+        return chunk;
+    }
     // buildDependencies(module, dependencies){
     //     module.dependencies = dependencies.map(data => {
     //         const childModule = normalModuleFactory.create(data)
@@ -224,19 +222,20 @@ class Compilation extends Tapable {
     //     this.createChunkAssets()
     //     callback()
     // }
-    // createChunkAssets(){
-    //     for(let i = 0; i < this.chunks.length; i++){
-    //         const chunk = this.chunks[i]
-    //         chunk.files = []
-    //         const file = chunk.name + '.js' // main.js
-    //         const source = render({
-    //             entryId: chunk.entryModule.moduleId, // 此代码块的入口模块ID
-    //             modules: chunk.modules
-    //         })
-    //         chunk.files.push(file)
-    //         this.emitAsset(file, source)
-    //     }
-    // }
+    createChunkAssets(){
+        console.log('createChunkAssets===', this.chunks)
+        for(let i = 0; i < this.chunks.length; i++){
+            const chunk = this.chunks[i]
+            chunk.files = []
+            const file = chunk.name + '.js' // main.js
+            const source = render({
+                entryId: chunk.entryModule.moduleId, // 此代码块的入口模块ID
+                modules: chunk.modules
+            })
+            chunk.files.push(file)
+            this.emitAsset(file, source)
+        }
+    }
     // emitAsset(file, source){
     //     this.assets[file] = source
     //     this.files.push(file)

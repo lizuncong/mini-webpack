@@ -4,7 +4,8 @@
  */
 class Chunk {
 	constructor(name) {
-		his.name = name;
+		this.name = name;
+		console.log('chunk===', name)
 	}
 }
 
