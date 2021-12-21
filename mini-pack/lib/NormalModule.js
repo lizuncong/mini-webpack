@@ -41,6 +41,9 @@ class NormalModule {
         this.dependencies = [];
 		if (resolveOptions !== undefined) this.resolveOptions = resolveOptions;
 	}
+    identifier() {
+		return this.request;
+	}
 	build(options, compilation, resolver, fs, callback){
         const loaderContext = {
             rootContext: options.context, 

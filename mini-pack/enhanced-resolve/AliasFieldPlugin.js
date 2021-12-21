@@ -14,7 +14,6 @@ module.exports = class AliasFieldPlugin {
 				request.__innerRequest_request = request.request;
 				request.__innerRequest_relativePath = request.relativePath;
 				request.__innerRequest = resolver.join(request.relativePath, request.request)
-				// request.__innerRequest = request.request
 				callback();
 			});
 	}

@@ -2,7 +2,7 @@ const {
 	Tapable,
 } = require("tapable");
 const path = require('path')
-// const Chunk = require('./Chunk')
+const Chunk = require('./Chunk')
 // const normalModuleFactory = require('./NormalModuleFactory')
 // const ejs = require('ejs')
 // const fs = require('fs')
@@ -24,12 +24,13 @@ class Compilation extends Tapable {
             // afterChunks: new SyncHook([])
         }
         this.dependencyFactories = new Map();
+		this._preparedEntrypoints = [];
 
         // 代表我们的入口，里面放着所有的入口模块
         this.entries = []
 
-        // this.modules = [] // 这是一个模块的数组，里面都是模块实例
-        // this._modules = {} // 这是一个对象 key是模块的绝对路径，值是模块的实例
+        this.modules = [] // 这是一个模块的数组，里面都是模块实例
+		this._modules = new Map(); // 存储的是已经编译过的模块实例
     
         // this.chunks = []
 
@@ -40,6 +41,12 @@ class Compilation extends Tapable {
 
 
     addEntry(context, entry, name, callback){
+        const slot = {
+			name: name,
+			request: entry.request,
+			module: null
+		};
+        this._preparedEntrypoints.push(slot)
         this._addModuleChain(
             context, 
             entry,
@@ -48,6 +55,7 @@ class Compilation extends Tapable {
                 this.entries.push(module)
             },
             (err, module) => {
+                slot.module = module;
                 callback(null, module)
             }
         )
@@ -66,27 +74,58 @@ class Compilation extends Tapable {
                 dependencies: [dependency]
             },
             (err, module) => {
+                const addModuleResult = this.addModule(module)
                 onModule(module)
                 dependency.module = module
-                module.build(
-                    this.options,
-                    this,
-                    this.resolverFactory.get("normal", module.resolveOptions),
-                    this.inputFileSystem,
-                    error => {
-                        this.processModuleDependencies(module, err => {
-                            if (err) return callback(err);
-                            callback(null, module);
-                        });
-                    }
-                )
+                if(addModuleResult.build){
+                    this.buildModule(module, false, null, null, err => {
+                        if (addModuleResult.dependencies) {
+							this.processModuleDependencies(module, err => {
+								if (err) return callback(err);
+								callback(null, module);
+							});
+						} else {
+							return callback(null, module);
+						}
+                    })
+                }
             }
         )
     }
-
+    addModule(module){
+        const identifier = module.identifier();
+        // 判断模块是否已经编译过
+        const alreadyAddedModule = this._modules.get(identifier);
+		if (alreadyAddedModule) {
+			return {
+				module: alreadyAddedModule,
+				issuer: false,
+				build: false,
+				dependencies: false
+			};
+		}
+        this._modules.set(identifier, module);
+        this.modules.push(module)
+        return {
+			module: module,
+			issuer: true,
+			build: true,
+			dependencies: true
+		};
+    }
+    buildModule(module, optional, origin, dependencies, thisCallback) {
+        module.build(
+            this.options,
+            this,
+            this.resolverFactory.get("normal", module.resolveOptions),
+            this.inputFileSystem,
+            error => {
+                thisCallback();
+            }
+        )
+	}
     processModuleDependencies(module, callback){
         const sortedDependencies = [];
-
         module.dependencies.forEach(dep => {
             const factory = this.dependencyFactories.get(dep.constructor)
             sortedDependencies.push({
@@ -100,10 +139,10 @@ class Compilation extends Tapable {
     addModuleDependencies(module, dependencies, callback){
         if(!dependencies.length) callback()
         let count = 0;
+        // console.log('addModuleDependencies==', dependencies)
         dependencies.forEach(item => {
             const dependencies = item.dependencies;
             const factory = item.factory
-            // console.log('module.context', module.context)
             factory.create(
                 {
                     contextInfo: {
@@ -115,23 +154,56 @@ class Compilation extends Tapable {
                     dependencies: dependencies
                 },
                 (err, dependentModule) => {
-                    dependentModule.build(
-                        this.options,
-                        this,
-                        this.resolverFactory.get("normal", module.resolveOptions),
-                        this.inputFileSystem,
-                        error => {
-                            this.processModuleDependencies(dependentModule, err => {
-                                if(++count === dependencies.length){
-                                    callback()
+                    const addModuleResult = this.addModule(dependentModule);
+                    for (let index = 0; index < dependencies.length; index++) {
+                        const dep = dependencies[index];
+                        dep.module = dependentModule;
+                    }
+                    if (addModuleResult.build) {
+                        this.buildModule(
+                            dependentModule,
+                            false,
+                            null,
+                            null,
+                            err => {
+                                count++;
+                                if(addModuleResult.dependencies){
+                                    this.processModuleDependencies(dependentModule, err => {
+                                        if(count === dependencies.length){
+                                            callback()
+                                        }
+                                    });
+                                } else {
+                                    if(count === dependencies.length){
+                                        callback()
+                                    }
                                 }
-                            });
-                        }
-                    )
+                            }
+                        )
+                    }
                 }
             )
         })
     }
+    finish(callback){
+        callback();
+    }
+    seal(callback){
+        console.log('seal==', this._preparedEntrypoints)
+    }
+    // seal(callback){
+    //     this.hooks.seal.call();
+    //     this.hooks.beforeChunks.call()
+    //     for(let entryModule of this.entries){
+    //         const chunk = new Chunk(entryModule)
+    //         this.chunks.push(chunk)
+    //         // 只要模块的名字和代码的名字一样，就说明这个模块属于这个代码块
+    //         chunk.modules = this.modules.filter(module => module.name === chunk.name)
+    //     }
+    //     this.hooks.afterChunks.call()
+    //     this.createChunkAssets()
+    //     callback()
+    // }
     // buildDependencies(module, dependencies){
     //     module.dependencies = dependencies.map(data => {
     //         const childModule = normalModuleFactory.create(data)

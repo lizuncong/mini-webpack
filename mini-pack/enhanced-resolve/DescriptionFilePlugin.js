@@ -15,9 +15,9 @@ module.exports = class DescriptionFilePlugin {
 			.tapAsync(
 				"DescriptionFilePlugin",
 				(request, resolveContext, callback) => {
-					let directory = request.descriptionFileRoot || request.path;
+					let directory = request.path;
 					const pkgFilename = this.filenames[0]
-					let descriptionFilePath =  path.join(directory, pkgFilename)
+					let descriptionFilePath =  resolver.join(directory, pkgFilename)
 					const readPkgJSONFile = (filePath, callback) => {
 						resolver.fileSystem.readFile(filePath, (err, buffer) => {
 							if (err) {
