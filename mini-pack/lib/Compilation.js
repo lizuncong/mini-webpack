@@ -3,6 +3,7 @@ const {
 } = require("tapable");
 const path = require('path')
 const Chunk = require('./Chunk')
+const MainTemplate = require("./MainTemplate");
 // const normalModuleFactory = require('./NormalModuleFactory')
 // const ejs = require('ejs')
 // const fs = require('fs')
@@ -14,6 +15,9 @@ class Compilation extends Tapable {
         this.compiler = compiler
         this.resolverFactory = compiler.resolverFactory;
         this.options = compiler.options // webpack options
+        this.outputOptions = options && options.output;
+        this.mainTemplate = new MainTemplate(this.outputOptions);
+
         // this.context = compiler.context
         this.inputFileSystem = compiler.inputFileSystem
         // this.outputFileSystem = compiler.outputFileSystem
@@ -189,6 +193,7 @@ class Compilation extends Tapable {
         callback();
     }
     seal(callback){
+        console.log('seal==', this.modules)
         for (const preparedEntrypoint of this._preparedEntrypoints) {
             const name = preparedEntrypoint.name;
             const chunk = this.addChunk(name);
