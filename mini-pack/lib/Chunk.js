@@ -4,8 +4,19 @@
  */
 class Chunk {
 	constructor(name) {
+		this.id = null;
 		this.name = name;
-		console.log('chunk===', name)
+		this.entryModule = undefined;
+		this._groups = new Set();
+		this._modules = new Set();
+	}
+	addGroup(chunkGroup) {
+		this._groups.add(chunkGroup);
+		return true;
+	}
+	addModule(module) {
+		this._modules.add(module);
+		return true;
 	}
 }
 

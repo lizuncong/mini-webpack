@@ -39,10 +39,15 @@ class NormalModule {
 		this.matchResource = matchResource;
 		this.loaders = loaders;
         this.dependencies = [];
+        this._chunks = new Set();
 		if (resolveOptions !== undefined) this.resolveOptions = resolveOptions;
 	}
     identifier() {
 		return this.request;
+	}
+    addChunk(chunk) {
+		this._chunks.add(chunk);
+		return true;
 	}
 	build(options, compilation, resolver, fs, callback){
         const loaderContext = {

@@ -4,6 +4,8 @@ const {
 const path = require('path')
 const Chunk = require('./Chunk')
 const MainTemplate = require("./MainTemplate");
+const Entrypoint = require('./Entrypoint')
+const buildChunkGraph = require('./buildChunkGraph')
 // const normalModuleFactory = require('./NormalModuleFactory')
 // const ejs = require('ejs')
 // const fs = require('fs')
@@ -15,7 +17,7 @@ class Compilation extends Tapable {
         this.compiler = compiler
         this.resolverFactory = compiler.resolverFactory;
         this.options = compiler.options // webpack options
-        this.outputOptions = options && options.output;
+        this.outputOptions = this.options && this.options.output;
         this.mainTemplate = new MainTemplate(this.outputOptions);
 
         // this.context = compiler.context
@@ -35,7 +37,10 @@ class Compilation extends Tapable {
 
         this.modules = [] // 这是一个模块的数组，里面都是模块实例
 		this._modules = new Map(); // 存储的是已经编译过的模块实例
-    
+        this.namedChunkGroups = new Map();
+        this.chunkGroups = [];
+		this.entrypoints = new Map();
+
         this.chunks = []
 
         // this.files = []
@@ -193,19 +198,62 @@ class Compilation extends Tapable {
         callback();
     }
     seal(callback){
-        console.log('seal==', this.modules)
         for (const preparedEntrypoint of this._preparedEntrypoints) {
+            const module = preparedEntrypoint.module;
             const name = preparedEntrypoint.name;
             const chunk = this.addChunk(name);
+            // entrypoint即是一个chunk group，在webpack配置中配了几个入口点，就有几个
+            // entrypoint对象
+            const entrypoint = new Entrypoint(name);
+            entrypoint.setRuntimeChunk(chunk)
+            entrypoint.addOrigin(null, name, preparedEntrypoint.request);
+            this.namedChunkGroups.set(name, entrypoint);
+			this.entrypoints.set(name, entrypoint);
+			this.chunkGroups.push(entrypoint);
+            // 此时, entrypoint和chunk都只是根据name创建的一个空对象，还没和module关联。
+            // 同时 entrypoint和chunk还没关联。
+
+            // 下面两行代码相互关联chunk和entrypoint
+            entrypoint.pushChunk(chunk)
+            chunk.addGroup(entrypoint)
+            // 下面两行代码相互管理chunk和module
+            module.addChunk(chunk)
+            chunk.addModule(module)
             chunk.entryModule = preparedEntrypoint.module;
 			chunk.name = name;
+
+            this.assignDepth(module);
         }
-        this.createChunkAssets();
+
+        buildChunkGraph(
+            this,
+            this.chunkGroups.slice()
+        )
+
+        // this.createChunkAssets();
     }
     addChunk(name){
         const chunk = new Chunk(name)
         this.chunks.push(chunk)
         return chunk;
+    }
+    assignDepth(module){
+        let depth = 0;
+        const queue = new Set([module]) 
+        module.depth = 0;
+        for (module of queue) {
+			queue.delete(module);
+			depth = module.depth;
+
+			depth++;
+			for(let i = 0; i < module.dependencies.length; i++){
+                const dep = module.dependencies[i]
+                if(dep.module){
+                    queue.add(dep.module)
+                    dep.module.depth = depth
+                }
+            }
+		}
     }
     // buildDependencies(module, dependencies){
     //     module.dependencies = dependencies.map(data => {

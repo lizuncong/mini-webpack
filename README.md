@@ -175,3 +175,6 @@ const obj = {
         + NextPlugin 
 
 在整个模块的resolve过程中，obj和callback回调都会在整个插件流中传递，和resolve相关的基本都是AsyncSeriesBailHook异步串行保险式钩子。
+
+### webpack各阶段
+- make阶段主要是根据 `requier()` 构建 `Module` 
