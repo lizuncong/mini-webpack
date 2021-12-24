@@ -8,6 +8,8 @@ const extraceBlockInfoMap = compilation => {
 	let blockInfoModules;
 	let blockInfoBlocks;
 
+    // 遍历compilation.modules，对每一个module，遍历module.dependencies
+    // 获取每个依赖对应的module，构造module和module所依赖的模块的对应关系
 	for (const module of compilation.modules) {
 		blockQueue = [module];
 		currentModule = module;
@@ -21,8 +23,8 @@ const extraceBlockInfoMap = compilation => {
             };
 
 			const blockInfo = {
-				modules: blockInfoModules,
-				blocks: blockInfoBlocks
+				modules: blockInfoModules, // 是一个集合，保存着模块所依赖的模块
+				blocks: blockInfoBlocks // 对主流程来讲是个空数组
 			};
 			blockInfoMap.set(block, blockInfo);
 		}
@@ -76,7 +78,8 @@ const buildChunkGraph = (compilation, inputChunkGroups) => {
 	const blocksWithNestedBlocks = new Set();
 
 
-    // PART ONE
+    // PART ONE, 为inputChunkGroups即entry point的_moduleIndices，_moduleIndices2
+    // 赋值
 	visitModules(
 		compilation,
 		inputChunkGroups,

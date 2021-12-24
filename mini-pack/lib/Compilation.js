@@ -255,6 +255,12 @@ class Compilation extends Tapable {
             }
 		}
     }
+    // module包含dependency，即dependency是module.dependencies
+    // 数组中的每一项，这里会为module.dependencies中的每一个dependency
+    // 创造一个引用
+    getDependencyReference(module, dependency){
+		return dependency.getReference();
+    }
     // buildDependencies(module, dependencies){
     //     module.dependencies = dependencies.map(data => {
     //         const childModule = normalModuleFactory.create(data)
