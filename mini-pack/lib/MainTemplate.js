@@ -28,8 +28,22 @@ module.exports = class MainTemplate extends Tapable {
 		super();
 		this.outputOptions = outputOptions || {};
 		this.hooks = {
+			hash: new SyncHook(["hash"]),
+			renderManifest: new SyncWaterfallHook(["result", "options"]),
 		};
 		this.requireFn = "__webpack_require__";
 	}
+	getRenderManifest(options){
+		const result = [];
 
+		this.hooks.renderManifest.call(result, options);
+
+		return result;
+	}
+
+	updateHash(hash) {
+		hash.update("maintemplate");
+		hash.update("3");
+		this.hooks.hash.call(hash);
+	}
 };

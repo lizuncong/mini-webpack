@@ -1,17 +1,20 @@
 const EntryOptionPlugin = require('./EntryOptionPlugin')
 const JavascriptModulesPlugin = require('./JavascriptModulesPlugin')
 const CommonJsPlugin = require("./dependencies/CommonJsPlugin");
-
+const NamedModulesPlugin = require('./NamedModulesPlugin')
+const NamedChunksPlugin = require('./NamedChunksPlugin')
+const FunctionModulePlugin = require('./FunctionModulePlugin')
 class WebpackOptionsApply{
     process(options, compiler){
         compiler.outputPath = options.output.path;
 		compiler.name = options.name;
 
 
-        // JsonpTemplatePlugin = require("./web/JsonpTemplatePlugin");
+        const JsonpTemplatePlugin = require("./web/JsonpTemplatePlugin");
         // FetchCompileWasmTemplatePlugin = require("./web/FetchCompileWasmTemplatePlugin");
         // NodeSourcePlugin = require("./node/NodeSourcePlugin");
-        // new JsonpTemplatePlugin().apply(compiler);
+        new JsonpTemplatePlugin().apply(compiler);
+        new FunctionModulePlugin().apply(compiler);
         // new FetchCompileWasmTemplatePlugin({
         //     mangleImports: options.optimization.mangleWasmImports
         // }).apply(compiler);
@@ -27,6 +30,9 @@ class WebpackOptionsApply{
         // 挂载入口点，监听make事件
         new EntryOptionPlugin().apply(compiler)
         new CommonJsPlugin(options.module).apply(compiler);
+       
+        new NamedModulesPlugin().apply(compiler);
+        new NamedChunksPlugin().apply(compiler)
         compiler.hooks.entryOption.call(options.context, options.entry)
         
         compiler.resolverFactory.hooks.resolveOptions

@@ -1,11 +1,15 @@
 const {
 	Tapable,
+    SyncHook
 } = require("tapable");
 const path = require('path')
 const Chunk = require('./Chunk')
 const MainTemplate = require("./MainTemplate");
+const ChunkTemplate = require('./ChunkTemplate')
 const Entrypoint = require('./Entrypoint')
 const buildChunkGraph = require('./buildChunkGraph')
+const createHash = require('./util/createHash')
+const ModuleTemplate = require('./ModuleTemplate')
 // const normalModuleFactory = require('./NormalModuleFactory')
 // const ejs = require('ejs')
 // const fs = require('fs')
@@ -19,11 +23,16 @@ class Compilation extends Tapable {
         this.options = compiler.options // webpack options
         this.outputOptions = this.options && this.options.output;
         this.mainTemplate = new MainTemplate(this.outputOptions);
-
+		this.chunkTemplate = new ChunkTemplate(this.outputOptions);
+        this.moduleTemplates = {
+			javascript: new ModuleTemplate(this.runtimeTemplate, "javascript"),
+		};
         // this.context = compiler.context
         this.inputFileSystem = compiler.inputFileSystem
         // this.outputFileSystem = compiler.outputFileSystem
         this.hooks = {
+			beforeModuleIds: new SyncHook(["modules"]),
+            beforeChunkIds: new SyncHook(["chunks"]),
             // addEntry: new SyncHook(['entry', 'name']),
             // seal: new SyncHook([]),
             // beforeChunks: new SyncHook([]),
@@ -230,7 +239,11 @@ class Compilation extends Tapable {
             this.chunkGroups.slice()
         )
 
-        // this.createChunkAssets();
+        this.hooks.beforeModuleIds.call(this.modules);
+        this.hooks.beforeChunkIds.call(this.chunks);
+        this.createHash();
+
+        this.createChunkAssets();
     }
     addChunk(name){
         const chunk = new Chunk(name)
@@ -281,18 +294,55 @@ class Compilation extends Tapable {
     //     this.createChunkAssets()
     //     callback()
     // }
+    createHash(){
+        const outputOptions = this.outputOptions;
+        const hashFunction = outputOptions.hashFunction; // md4;
+		const hashDigest = outputOptions.hashDigest; // hex
+		const hashDigestLength = outputOptions.hashDigestLength; // 20
+        const hash = createHash(hashFunction);
+        this.mainTemplate.updateHash(hash);
+		this.chunkTemplate.updateHash(hash);
+        this.moduleTemplates.javascript.updateHash(hash)
+
+        // 为每个module生成hash及renderedHash值
+        const modules = this.modules;
+		for (let i = 0; i < modules.length; i++) {
+			const module = modules[i];
+			const moduleHash = createHash(hashFunction);
+			module.updateHash(moduleHash);
+			module.hash = moduleHash.digest(hashDigest);
+			module.renderedHash = module.hash.substr(0, hashDigestLength);
+		}
+
+        // 生成chunk hash
+        const chunks = this.chunks.slice();
+        for (let i = 0; i < chunks.length; i++) {
+			const chunk = chunks[i];
+			const chunkHash = createHash(hashFunction);
+			chunk.updateHash(chunkHash);
+			chunk.hash = chunkHash.digest(hashDigest);
+			// 上层的hash值
+            hash.update(chunk.hash);
+			chunk.renderedHash = chunk.hash.substr(0, hashDigestLength);
+		}
+        this.fullHash = hash.digest(hashDigest);
+		this.hash = this.fullHash.substr(0, hashDigestLength);
+    }
     createChunkAssets(){
-        console.log('createChunkAssets===', this.chunks)
+        const outputOptions = this.outputOptions;
         for(let i = 0; i < this.chunks.length; i++){
             const chunk = this.chunks[i]
             chunk.files = []
-            const file = chunk.name + '.js' // main.js
-            const source = render({
-                entryId: chunk.entryModule.moduleId, // 此代码块的入口模块ID
-                modules: chunk.modules
-            })
-            chunk.files.push(file)
-            this.emitAsset(file, source)
+            const template = this.mainTemplate;
+            const manifest = template.getRenderManifest({
+                chunk,
+                hash: this.hash,
+                fullHash: this.fullHash,
+                outputOptions,
+                moduleTemplates: this.moduleTemplates,
+                dependencyTemplates: this.dependencyTemplates
+            });
+            console.log('manifest===', manifest)
         }
     }
     // emitAsset(file, source){

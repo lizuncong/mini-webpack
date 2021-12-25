@@ -7,6 +7,9 @@ class OriginalSource {
     source() {
 		return this._value;
 	}
+	updateHash(hash) {
+		hash.update(this._value);
+	}
 }
 
 

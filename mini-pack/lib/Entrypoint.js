@@ -10,6 +10,10 @@ class Entrypoint {
 		this.runtimeChunk = undefined;
         this.origins = [];
         this.chunks = [];
+		// 索引，从上到下
+		this._moduleIndices = new Map();
+		// 索引，从下到上
+		this._moduleIndices2 = new Map();
 	}
     pushChunk(chunk) {
 		this.chunks.push(chunk);
@@ -21,6 +25,18 @@ class Entrypoint {
 			loc,
 			request
 		});
+	}
+	setModuleIndex(module, index) {
+		this._moduleIndices.set(module, index);
+	}
+	getModuleIndex(module) {
+		return this._moduleIndices.get(module);
+	}
+	setModuleIndex2(module, index) {
+		this._moduleIndices2.set(module, index);
+	}
+	getModuleIndex2(module) {
+		return this._moduleIndices2.get(module);
 	}
 	setRuntimeChunk(chunk) {
 		this.runtimeChunk = chunk;

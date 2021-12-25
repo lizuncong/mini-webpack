@@ -16,6 +16,7 @@ class Compiler extends Tapable {
         super();
         // 这些钩子大部分在WebpackOptionsApply实例中注册插件
         this.hooks = {
+			thisCompilation: new SyncHook(["compilation", "params"]),
             afterCompile: new AsyncSeriesHook(["compilation"]),
 			afterResolvers: new SyncHook(["compiler"]),
 			beforeRun: new AsyncSeriesHook(["compiler"]),
@@ -66,7 +67,7 @@ class Compiler extends Tapable {
 
     newCompilation(params){
         const compilation = new Compilation(this)
-        // this.hooks.thisCompilation.call(compilation, params)
+        this.hooks.thisCompilation.call(compilation, params)
         this.hooks.compilation.call(compilation, params)
         return compilation
     }

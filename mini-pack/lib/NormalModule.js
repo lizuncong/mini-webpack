@@ -1,6 +1,8 @@
 
+const path = require('path')
 const { runLoaders } =require('../loader-runner/LoaderRunner')
 const OriginalSource = require('../webpack-sources/OriginalSource')
+const createHash = require('./util/createHash')
 function dirname(path) {
 	if(path === "/") return "/";
 	var i = path.lastIndexOf("/");
@@ -40,10 +42,16 @@ class NormalModule {
 		this.loaders = loaders;
         this.dependencies = [];
         this._chunks = new Set();
+        this.index = null;
+        this.index2 = null;
+        this.id = null;
 		if (resolveOptions !== undefined) this.resolveOptions = resolveOptions;
 	}
     identifier() {
 		return this.request;
+	}
+    libIdent(options) {
+		return "./" + path.posix.relative(options.context, this.userRequest);
 	}
     addChunk(chunk) {
 		this._chunks.add(chunk);
@@ -79,9 +87,25 @@ class NormalModule {
                         options
                     }
                 )
+                this._initBuildHash(compilation);
                 callback();
             }
         )
+	}
+    _initBuildHash(compilation) {
+		const hash = createHash(compilation.outputOptions.hashFunction);
+		if (this._source) {
+			hash.update("source");
+			this._source.updateHash(hash);
+		}
+		hash.update("meta");
+		hash.update(JSON.stringify({}));
+		this._buildHash = hash.digest("hex");
+	}
+    updateHash(hash) {
+		hash.update(this._buildHash);
+        hash.update(`${this.id}`);
+        for (const dep of this.dependencies) dep.updateHash(hash);
 	}
 	// build(options, compilation){
     //     // 现在开始编译入口模块了

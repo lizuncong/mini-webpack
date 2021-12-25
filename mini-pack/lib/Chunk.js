@@ -18,6 +18,13 @@ class Chunk {
 		this._modules.add(module);
 		return true;
 	}
+	updateHash(hash) {
+		hash.update(`${this.id} `);
+		hash.update(`${this.name || ""} `);
+		for (const m of this._modules) {
+			hash.update(m.hash);
+		}
+	}
 }
 
 

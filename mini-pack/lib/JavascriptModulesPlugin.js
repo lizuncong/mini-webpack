@@ -14,6 +14,41 @@ class JavascriptModulesPlugin {
 				.tap("JavascriptModulesPlugin", () => {
 					return new JavascriptGenerator();
 				});
+
+				compilation.mainTemplate.hooks.renderManifest.tap(
+					"JavascriptModulesPlugin",
+					(result, options) => {
+						const chunk = options.chunk;
+						const hash = options.hash;
+						const fullHash = options.fullHash;
+						const outputOptions = options.outputOptions;
+						const moduleTemplates = options.moduleTemplates;
+						const dependencyTemplates = options.dependencyTemplates;
+
+						const filenameTemplate =
+							chunk.filenameTemplate || outputOptions.filename;
+
+						const useChunkHash = true
+						result.push({
+							render: () =>
+								compilation.mainTemplate.render(
+									hash,
+									chunk,
+									moduleTemplates.javascript,
+									dependencyTemplates
+								),
+							filenameTemplate,
+							pathOptions: {
+								noChunkHash: !useChunkHash,
+								contentHashType: "javascript",
+								chunk
+							},
+							identifier: `chunk${chunk.id}`,
+							hash: useChunkHash ? chunk.hash : fullHash
+						});
+						return result;
+					}
+				);
 			}
 		);
 	}
