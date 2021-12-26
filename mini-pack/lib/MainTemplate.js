@@ -28,6 +28,7 @@ module.exports = class MainTemplate extends Tapable {
 		super();
 		this.outputOptions = outputOptions || {};
 		this.hooks = {
+			assetPath: new SyncWaterfallHook(["path", "options", "assetInfo"]),
 			hash: new SyncHook(["hash"]),
 			renderManifest: new SyncWaterfallHook(["result", "options"]),
 		};
@@ -45,5 +46,41 @@ module.exports = class MainTemplate extends Tapable {
 		hash.update("maintemplate");
 		hash.update("3");
 		this.hooks.hash.call(hash);
+	}
+
+	getAssetPathWithInfo(path, options){
+		const assetInfo = {};
+		const newPath = this.hooks.assetPath.call(path, options, assetInfo);
+		return { path: newPath, info: assetInfo }
+	}
+	render(hash, chunk, moduleTemplate, dependencyTemplates) {
+		const buf = this.renderBootstrap(
+			hash,
+			chunk,
+			moduleTemplate,
+			dependencyTemplates
+		);
+		console.log('buf===', buf)
+		return
+		let source = this.hooks.render.call(
+			new OriginalSource(
+				Template.prefix(buf, " \t") + "\n",
+				"webpack/bootstrap"
+			),
+			chunk,
+			hash,
+			moduleTemplate,
+			dependencyTemplates
+		);
+		if (chunk.hasEntryModule()) {
+			source = this.hooks.renderWithEntry.call(source, chunk, hash);
+		}
+		if (!source) {
+			throw new Error(
+				"Compiler error: MainTemplate plugin 'render' should return something"
+			);
+		}
+		chunk.rendered = true;
+		return new ConcatSource(source, ";");
 	}
 };

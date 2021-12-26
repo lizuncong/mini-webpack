@@ -4,6 +4,8 @@ const CommonJsPlugin = require("./dependencies/CommonJsPlugin");
 const NamedModulesPlugin = require('./NamedModulesPlugin')
 const NamedChunksPlugin = require('./NamedChunksPlugin')
 const FunctionModulePlugin = require('./FunctionModulePlugin')
+const TemplatedPathPlugin = require("./TemplatedPathPlugin");
+
 class WebpackOptionsApply{
     process(options, compiler){
         compiler.outputPath = options.output.path;
@@ -15,6 +17,7 @@ class WebpackOptionsApply{
         // NodeSourcePlugin = require("./node/NodeSourcePlugin");
         new JsonpTemplatePlugin().apply(compiler);
         new FunctionModulePlugin().apply(compiler);
+        new TemplatedPathPlugin().apply(compiler);
         // new FetchCompileWasmTemplatePlugin({
         //     mangleImports: options.optimization.mangleWasmImports
         // }).apply(compiler);

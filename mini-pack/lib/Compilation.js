@@ -342,7 +342,18 @@ class Compilation extends Tapable {
                 moduleTemplates: this.moduleTemplates,
                 dependencyTemplates: this.dependencyTemplates
             });
-            console.log('manifest===', manifest)
+            for (const fileManifest of manifest) {
+                const cacheName = fileManifest.identifier;
+                const usedHash = fileManifest.hash;
+                const filenameTemplate = fileManifest.filenameTemplate;
+                const pathAndInfo = this.mainTemplate.getAssetPathWithInfo(filenameTemplate, {
+                    ...fileManifest.pathOptions,
+                    hash: this.hash
+                })
+                const file = pathAndInfo.path;
+                const assetInfo = pathAndInfo.info;
+                const sourcd = fileManifest.render();
+            }
         }
     }
     // emitAsset(file, source){

@@ -30,13 +30,14 @@ class JavascriptModulesPlugin {
 
 						const useChunkHash = true
 						result.push({
-							render: () =>
-								compilation.mainTemplate.render(
+							render: () => {
+								return compilation.mainTemplate.render(
 									hash,
 									chunk,
 									moduleTemplates.javascript,
 									dependencyTemplates
-								),
+								)
+							},
 							filenameTemplate,
 							pathOptions: {
 								noChunkHash: !useChunkHash,
