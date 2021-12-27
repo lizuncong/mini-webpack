@@ -5,7 +5,19 @@ module.exports = class ModuleTemplate extends Tapable {
 		this.runtimeTemplate = runtimeTemplate;
 		this.type = type;
 		this.hooks = {
-			hash: new SyncHook(["hash"])
+			hash: new SyncHook(["hash"]),
+			render: new SyncWaterfallHook([
+				"source",
+				"module",
+				"options",
+				"dependencyTemplates"
+			]),
+			package: new SyncWaterfallHook([
+				"source",
+				"module",
+				"options",
+				"dependencyTemplates"
+			]),
 		};
 	}
 
@@ -15,41 +27,23 @@ module.exports = class ModuleTemplate extends Tapable {
 	}
 
 	render(module, dependencyTemplates, options) {
-		try {
-			const moduleSource = module.source(
-				dependencyTemplates,
-				this.runtimeTemplate,
-				this.type
-			);
-			return
-			const moduleSourcePostContent = this.hooks.content.call(
-				moduleSource,
-				module,
-				options,
-				dependencyTemplates
-			);
-			const moduleSourcePostModule = this.hooks.module.call(
-				moduleSourcePostContent,
-				module,
-				options,
-				dependencyTemplates
-			);
-			const moduleSourcePostRender = this.hooks.render.call(
-				moduleSourcePostModule,
-				module,
-				options,
-				dependencyTemplates
-			);
-			return this.hooks.package.call(
-				moduleSourcePostRender,
-				module,
-				options,
-				dependencyTemplates
-			);
-		} catch (e) {
-			e.message = `${module.identifier()}\n${e.message}`;
-			throw e;
-		}
+		const moduleSource = module.source(
+			dependencyTemplates,
+			this.runtimeTemplate,
+			this.type
+		);
+		const moduleSourcePostRender = this.hooks.render.call(
+			moduleSource,
+			module,
+			options,
+			dependencyTemplates
+		);
+		return this.hooks.package.call(
+			moduleSourcePostRender,
+			module,
+			options,
+			dependencyTemplates
+		);
 	}
 
 };

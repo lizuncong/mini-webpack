@@ -2,6 +2,7 @@
 const path = require('path')
 const { runLoaders } =require('../loader-runner/LoaderRunner')
 const OriginalSource = require('../webpack-sources/OriginalSource')
+const CachedSource = require('../webpack-sources/CachedSource')
 const createHash = require('./util/createHash')
 function dirname(path) {
 	if(path === "/") return "/";
@@ -111,7 +112,6 @@ class NormalModule {
 		return this._source;
 	}
     source(dependencyTemplates, runtimeTemplate, type = "javascript") {
-		const hashDigest = `${this.hash}-`;
 
 		const source = this.generator.generate(
 			this,
@@ -119,12 +119,7 @@ class NormalModule {
 			runtimeTemplate,
 			type
 		);
-        return
 		const cachedSource = new CachedSource(source);
-		this._cachedSources.set(type, {
-			source: cachedSource,
-			hash: hashDigest
-		});
 		return cachedSource;
 	}
 	// build(options, compilation){
