@@ -1,4 +1,3 @@
-
 // The module cache
 var installedModules = {};// The require functionfunction __webpack_require__(moduleId) {
 	// Check if module is in cache

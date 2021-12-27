@@ -107,6 +107,26 @@ class NormalModule {
         hash.update(`${this.id}`);
         for (const dep of this.dependencies) dep.updateHash(hash);
 	}
+    originalSource() {
+		return this._source;
+	}
+    source(dependencyTemplates, runtimeTemplate, type = "javascript") {
+		const hashDigest = `${this.hash}-`;
+
+		const source = this.generator.generate(
+			this,
+			dependencyTemplates,
+			runtimeTemplate,
+			type
+		);
+        return
+		const cachedSource = new CachedSource(source);
+		this._cachedSources.set(type, {
+			source: cachedSource,
+			hash: hashDigest
+		});
+		return cachedSource;
+	}
 	// build(options, compilation){
     //     // 现在开始编译入口模块了
     //     const originalSource = compilation.inputFileSystem.readFileSync(this.request, 'utf8');

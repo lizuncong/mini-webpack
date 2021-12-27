@@ -6,6 +6,9 @@ const {
 } = require("tapable");
 const Template = require('./Template')
 const OriginalSource = require('../webpack-sources/OriginalSource')
+const ConcatSource = require('../webpack-sources/ConcatSource')
+const PrefixSource = require('../webpack-sources/PrefixSource')
+const RawSource = require('../webpack-sources/RawSource')
 // require function shortcuts:
 // __webpack_require__.s = the module id of the entry point
 // __webpack_require__.c = the module cache
@@ -39,6 +42,13 @@ module.exports = class MainTemplate extends Tapable {
 			// 	"moduleTemplate",
 			// 	"dependencyTemplates"
 			// ]),
+			modules: new SyncWaterfallHook([
+				"modules",
+				"chunk",
+				"hash",
+				"moduleTemplate",
+				"dependencyTemplates"
+			]),
 			render: new SyncWaterfallHook([
 				"source",
 				"chunk",
@@ -211,6 +221,8 @@ module.exports = class MainTemplate extends Tapable {
 			(bootstrapSource, chunk, hash, moduleTemplate, dependencyTemplates) => {
 				const source = new ConcatSource();
 				source.add("/******/ (function(modules) { // webpackBootstrap\n");
+				
+				// PrefixSource的目标是将\t制表符替换成/******/
 				source.add(new PrefixSource("/******/", bootstrapSource));
 				source.add("/******/ })\n");
 				source.add(
@@ -227,6 +239,8 @@ module.exports = class MainTemplate extends Tapable {
 					)
 				);
 				source.add(")");
+				console.log('source...', source)
+				return;
 				return source;
 			}
 		);
@@ -285,7 +299,7 @@ module.exports = class MainTemplate extends Tapable {
 			moduleTemplate,
 			dependencyTemplates
 		);
-		console.log('mainTemplate.render==', source)
+		// console.log('mainTemplate.render==', source)
 		return;
 		if (chunk.hasEntryModule()) {
 			source = this.hooks.renderWithEntry.call(source, chunk, hash);

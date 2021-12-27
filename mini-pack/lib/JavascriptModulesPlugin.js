@@ -1,6 +1,7 @@
 
 const Parser = require('./Parser')
 const JavascriptGenerator = require('./JavascriptGenerator')
+const Template = require('./Template')
 class JavascriptModulesPlugin {
 	apply(compiler) {
 		compiler.hooks.compilation.tap(
@@ -48,6 +49,19 @@ class JavascriptModulesPlugin {
 							hash: useChunkHash ? chunk.hash : fullHash
 						});
 						return result;
+					}
+				);
+
+				compilation.mainTemplate.hooks.modules.tap(
+					"JavascriptModulesPlugin",
+					(source, chunk, hash, moduleTemplate, dependencyTemplates) => {
+						return Template.renderChunkModules(
+							chunk,
+							m => typeof m.source === "function",
+							moduleTemplate,
+							dependencyTemplates,
+							"/******/ "
+						);
 					}
 				);
 			}
