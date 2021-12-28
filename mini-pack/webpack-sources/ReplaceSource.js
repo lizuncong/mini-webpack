@@ -18,6 +18,28 @@ class ReplaceSource  {
 	replace(start, end, newValue, name) {
 		this.replacements.push(new Replacement(start, end, newValue, this.replacements.length, name));
 	}
+	source(options) {
+		return this._replaceString(this._source.source());
+	}
+	_replaceString(str) {
+		if(typeof str !== "string")
+			throw new Error("str must be a string, but is a " + typeof str + ": " + str);
+		this._sortReplacements();
+		var result = [str];
+		this.replacements.forEach(function(repl) {
+			var remSource = result.pop();
+			var splitted1 = this._splitString(remSource, Math.floor(repl.end + 1));
+			var splitted2 = this._splitString(splitted1[0], Math.floor(repl.start));
+			result.push(splitted1[1], repl.content, splitted2[0]);
+		}, this);
+
+		// write out result array in reverse order
+		let resultStr = "";
+		for(let i = result.length - 1; i >= 0; --i) {
+			resultStr += result[i];
+		}
+		return resultStr;
+	}
 }
 
 module.exports = ReplaceSource;
