@@ -4,7 +4,7 @@ class CommonJsRequireDependency {
 	constructor(request, range) {
         this.request = request;
 		this.userRequest = request;
-		this.range = range;
+		this.range = range || [];
 		this.module = null;
 	}
 	getReference() {

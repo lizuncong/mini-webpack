@@ -1,5 +1,7 @@
 
 const ConcatSource = require('../webpack-sources/ConcatSource')
+const Template = require("./Template");
+
 class FunctionModuleTemplatePlugin {
 	apply(moduleTemplate) {
 		moduleTemplate.hooks.render.tap(
@@ -7,6 +9,9 @@ class FunctionModuleTemplatePlugin {
 			(moduleSource, module) => {
 				const source = new ConcatSource();
 				const args = ['module', 'exports'];
+				if(module.dependencies.length){
+					args.push("__webpack_require__");
+				}
 				source.add("/***/ (function(" + args.join(", ") + ") {\n\n");
 				source.add(moduleSource);
 				source.add("\n\n/***/ })");

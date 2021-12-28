@@ -1,4 +1,5 @@
 const ConcatSource = require('../webpack-sources/ConcatSource')
+const COMMENT_END_REGEX = /\*\//g;
 
 class Template {
 
@@ -19,7 +20,10 @@ class Template {
 			return ind + str.replace(/\n([^\n])/g, "\n\t$1");
 		}
 	}
-
+	static toComment(str) {
+		if (!str) return "";
+		return `/*! ${str.replace(COMMENT_END_REGEX, "* /")} */`;
+	}
     static prefix(s, prefix) {
 		const str = Template.asString(s).trim();
 		if (!str) return "";

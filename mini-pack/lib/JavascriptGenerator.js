@@ -1,5 +1,7 @@
 
 const ReplaceSource = require('../webpack-sources/ReplaceSource')
+const ModuleDependencyTemplateAsId = require('./dependencies/ModuleDependencyTemplateAsId')
+const moduleTemplate = new ModuleDependencyTemplateAsId()
 class JavascriptGenerator {
     constructor(){
         
@@ -36,13 +38,7 @@ class JavascriptGenerator {
 		}
 	}
     sourceDependency(dependency, dependencyTemplates, source, runtimeTemplate) {
-		const template = dependencyTemplates.get(dependency.constructor);
-		if (!template) {
-			throw new Error(
-				"No template for dependency: " + dependency.constructor.name
-			);
-		}
-		template.apply(dependency, source, runtimeTemplate, dependencyTemplates);
+		moduleTemplate.apply(dependency, source, runtimeTemplate);
 	}
 }
 
