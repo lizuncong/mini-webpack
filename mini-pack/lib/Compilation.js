@@ -245,6 +245,8 @@ class Compilation extends Tapable {
         this.createHash();
 
         this.createChunkAssets();
+
+        callback()
     }
     addChunk(name){
         const chunk = new Chunk(name)
@@ -363,6 +365,27 @@ class Compilation extends Tapable {
 	emitAsset(file, source, assetInfo = {}) {
         this.assets[file] = source;
 	}
+
+    getPath(filename, data) {
+		data = data || {};
+		data.hash = data.hash || this.hash;
+		return this.mainTemplate.getAssetPath(filename, data);
+	}
+
+    getAssets() {
+		const array = [];
+		for (const assetName of Object.keys(this.assets)) {
+			if (Object.prototype.hasOwnProperty.call(this.assets, assetName)) {
+				array.push({
+					name: assetName,
+					source: this.assets[assetName],
+					info: {}
+				});
+			}
+		}
+		return array;
+	}
+
 }
 
 module.exports = Compilation

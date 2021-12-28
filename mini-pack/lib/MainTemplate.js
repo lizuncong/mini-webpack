@@ -263,6 +263,9 @@ module.exports = class MainTemplate extends Tapable {
 		const newPath = this.hooks.assetPath.call(path, options, assetInfo);
 		return { path: newPath, info: assetInfo }
 	}
+	getAssetPath(path, options) {
+		return this.hooks.assetPath.call(path, options);
+	}
 	renderBootstrap(hash, chunk, moduleTemplate, dependencyTemplates){
 		const buf = [''];
 		buf.push(this.hooks.localVars.call("", chunk, hash));

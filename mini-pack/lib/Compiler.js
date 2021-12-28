@@ -37,26 +37,26 @@ class Compiler extends Tapable {
         this.options = {} // webpack options
         this.context = context
     }
-    // emitAssets(compilation, callback){
-    //     const emitFiles = err => {
-    //         // assets是一个对象，对象上有属性的值 { 文件名字， 值是源码}
-    //         const assets = compilation.assets;
-    //         for(let file in assets){
-    //             const source = assets[file]
-    //             const targetPath = path.posix.join(this.options.output.path, file)
-    //             this.outputFileSystem.writeFileSync(targetPath, source)
-    //         }
-    //         callback()
-    //     }
-    //     this.hooks.emit.callAsync(compilation, (err) => {
-    //         mkdirp(this.options.output.path, emitFiles);
-    //     })
-    // }
+    emitAssets(compilation, callback){
+        let outputPath;
+        const emitFiles = err => {
+            const assets = compilation.getAssets()
+            for(const { name: targetFile, source } of assets){
+                const targetPath = path.posix.join(outputPath, targetFile)
+                let content = source.source();
+                this.outputFileSystem.writeFileSync(targetPath, content)
+            }
+            // callback()
+        }
+        this.hooks.emit.callAsync(compilation, (err) => {
+            // 在简单的主流程中，其实outputPath可以直接赋值this.outputPath
+            outputPath = compilation.getPath(this.outputPath);
+            this.outputFileSystem.mkdir(outputPath, emitFiles);
+        })
+    }
     
     run(finalCallback){
         const onCompiled = (err, compilation) => { // 编译完成后的回调
-            finalCallback();
-            return;
             this.emitAssets(compilation, (err) => {
                 const stats = new Stats(compilation)
                 finalCallback(null, stats)
@@ -89,7 +89,7 @@ class Compiler extends Tapable {
         this.hooks.make.callAsync(compilation, err => {
             compilation.finish(err => {
                 compilation.seal(err => { // 通过模块生成代码块
-                    // onCompiled(err, compilation)
+                    onCompiled(err, compilation)
                 })
             })
         })

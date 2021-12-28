@@ -7,8 +7,10 @@ class TemplatedPathPlugin {
 			mainTemplate.hooks.assetPath.tap(
 				"TemplatedPathPlugin",
 				(path, data, assetInfo) => {
-					const newP = path.replace(REGEXP_NAME, data.chunk.name)
-					return newP
+					if(data && data.chunk){
+						return path.replace(REGEXP_NAME, data.chunk.name)
+					}
+					return path;
                 }
 			);
 		});
