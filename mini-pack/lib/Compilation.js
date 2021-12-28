@@ -10,6 +10,7 @@ const Entrypoint = require('./Entrypoint')
 const buildChunkGraph = require('./buildChunkGraph')
 const createHash = require('./util/createHash')
 const ModuleTemplate = require('./ModuleTemplate')
+const CachedSource = require('../webpack-sources/CachedSource')
 // const normalModuleFactory = require('./NormalModuleFactory')
 // const ejs = require('ejs')
 // const fs = require('fs')
@@ -54,7 +55,7 @@ class Compilation extends Tapable {
 
         // this.files = []
 
-        // this.assets = {}
+        this.assets = {}
     }
 
 
@@ -352,14 +353,16 @@ class Compilation extends Tapable {
                 })
                 const file = pathAndInfo.path;
                 const assetInfo = pathAndInfo.info;
-                const sourcd = fileManifest.render();
+                const source = fileManifest.render();
+                const cachedSource = new CachedSource(source);
+                this.emitAsset(file, cachedSource, assetInfo);
+                chunk.files.push(file);
             }
         }
     }
-    // emitAsset(file, source){
-    //     this.assets[file] = source
-    //     this.files.push(file)
-    // }
+	emitAsset(file, source, assetInfo = {}) {
+        this.assets[file] = source;
+	}
 }
 
 module.exports = Compilation

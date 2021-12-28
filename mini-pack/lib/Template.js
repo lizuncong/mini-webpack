@@ -56,49 +56,17 @@ class Template {
 				})
 			};
 		});
-		console.log('Template.renderChunkModules==')
-		return;
-		const bounds = Template.getModulesArrayBounds(allModules);
-		if (bounds) {
-			// Render a spare array
-			const minId = bounds[0];
-			const maxId = bounds[1];
-			if (minId !== 0) {
-				source.add(`Array(${minId}).concat(`);
+		// Render an object
+		source.add("{\n");
+		allModules.forEach((module, idx) => {
+			if (idx !== 0) {
+				source.add(",\n");
 			}
-			source.add("[\n");
-			/** @type {Map<string|number, {id: string|number, source: Source|string}>} */
-			const modules = new Map();
-			for (const module of allModules) {
-				modules.set(module.id, module);
-			}
-			for (let idx = minId; idx <= maxId; idx++) {
-				const module = modules.get(idx);
-				if (idx !== minId) {
-					source.add(",\n");
-				}
-				source.add(`/* ${idx} */`);
-				if (module) {
-					source.add("\n");
-					source.add(module.source);
-				}
-			}
-			source.add("\n" + prefix + "]");
-			if (minId !== 0) {
-				source.add(")");
-			}
-		} else {
-			// Render an object
-			source.add("{\n");
-			allModules.sort(stringifyIdSortPredicate).forEach((module, idx) => {
-				if (idx !== 0) {
-					source.add(",\n");
-				}
-				source.add(`\n/***/ ${JSON.stringify(module.id)}:\n`);
-				source.add(module.source);
-			});
-			source.add(`\n\n${prefix}}`);
-		}
+			source.add(`\n/***/ ${JSON.stringify(module.id)}:\n`);
+			source.add(module.source);
+		});
+		source.add(`\n\n${prefix}}`);
+	
 		return source;
 	}
 }

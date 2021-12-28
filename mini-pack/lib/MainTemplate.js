@@ -239,8 +239,6 @@ module.exports = class MainTemplate extends Tapable {
 					)
 				);
 				source.add(")");
-				console.log('source...', source)
-				return;
 				return source;
 			}
 		);
@@ -299,18 +297,9 @@ module.exports = class MainTemplate extends Tapable {
 			moduleTemplate,
 			dependencyTemplates
 		);
-		// console.log('mainTemplate.render==', source)
-		return;
-		if (chunk.hasEntryModule()) {
-			source = this.hooks.renderWithEntry.call(source, chunk, hash);
-		}
-		if (!source) {
-			throw new Error(
-				"Compiler error: MainTemplate plugin 'render' should return something"
-			);
-		}
 		chunk.rendered = true;
-		return new ConcatSource(source, ";");
+		source.children.push(';')
+		return source
 	}
 	renderRequireFunctionForModule(){
 		return this.requireFn

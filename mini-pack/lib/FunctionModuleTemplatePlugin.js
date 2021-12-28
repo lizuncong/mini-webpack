@@ -23,7 +23,6 @@ class FunctionModuleTemplatePlugin {
 			(moduleSource, module) => {
 				const source = new ConcatSource();
 				const req = module.id;
-				console.log('package...', req)
 				const reqStr = req.replace(/\*\//g, "*_/");
 				const reqStrStar = "*".repeat(reqStr.length);
 				source.add("/*!****" + reqStrStar + "****!*\\\n");
