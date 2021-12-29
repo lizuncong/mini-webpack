@@ -5,11 +5,5 @@ debugger;
 
 const compiler = webpack(options)
 compiler.run((err, stat) => {
-    console.log('stat...', stat)
-    // console.log(stat.toJson({
-    //     entries: true,
-    //     chunks: true,
-    //     modules: true,
-    //     assets: true
-    // }))
+    stat.toJson();
 })

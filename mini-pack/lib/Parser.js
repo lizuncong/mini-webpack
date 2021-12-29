@@ -23,7 +23,9 @@ class Parser extends Tapable {
                 if(nodePath.node.callee.name === 'require'){
                     // 获取当前的节点对象
                     const node = nodePath.node;
-					const dep = new CommonJsRequireDependency(node.arguments[0].value)
+					const req = node.arguments[0]
+					const callee = node.callee;
+					const dep = new CommonJsRequireDependency(node.arguments[0].value, [req.start, req.end], [callee.start, callee.end])
                     module.dependencies.push(dep)
                 }
             }

@@ -8,8 +8,7 @@ const {
 const ResolverFactory = require("./ResolverFactory");
 const NormalModuleFactory = require('./NormalModuleFactory')
 const Compilation = require('./Compilation')
-// const Stats = require('./Stats')
-// const mkdirp = require('mkdirp')
+const Stats = require('./Stats')
 const path = require('path')
 class Compiler extends Tapable {
     constructor(context){
@@ -46,7 +45,7 @@ class Compiler extends Tapable {
                 let content = source.source();
                 this.outputFileSystem.writeFileSync(targetPath, content)
             }
-            // callback()
+            callback()
         }
         this.hooks.emit.callAsync(compilation, (err) => {
             // 在简单的主流程中，其实outputPath可以直接赋值this.outputPath
