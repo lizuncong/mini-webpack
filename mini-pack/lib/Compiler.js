@@ -67,6 +67,8 @@ class Compiler extends Tapable {
     newCompilation(params){
         const compilation = new Compilation(this)
         this.hooks.thisCompilation.call(compilation, params)
+        // 主要是为compilation.dependencyFactories设置值以及
+        // normalModuleFactory.hooks注册钩子
         this.hooks.compilation.call(compilation, params)
         return compilation
     }
