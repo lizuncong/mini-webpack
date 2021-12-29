@@ -1,5 +1,18 @@
-### 关于源码的调试
+### 源码调试
 - 新建debugger.js文件，文件名称可以自定义。引入node_modules/webpack/bin/webpack，使用debug模式运行debugger.js即可
+
+### mini-pack目录
+这个目录下的代码就是手写的webpack主流程源码。对应的webpack版本为4.46.0，webpack-cli版本为3.3.12。
+
+直接在控制台运行 `node ./mini-pack/cli` 即可。
+
+注意，mini-pack中的源码只是webpack主流程的源码，webpack源码本身除了架构设计复杂外，还有业务层面更加复杂。主流程源码只是针对简单的
+打包场景进行处理，如果遇到打包出错的情况，那么也毫不意外。
+
+一般来说，梳理清楚webpack主流程后，基本上对webpack整体架构都会有个清晰的认识。剩下的就是业务复杂度。如果仅仅是对源码感兴趣，大可不必
+深究webpack自身的业务。举个例子，在我手写的过程中，我只是使用了 `index.js`，`test.js`，`a.js`这三个简单的文件进行打包，在真实的webpack
+业务中，光是模块解析，即`require('./test.js')`，为了解析 `test.js` 文件的位置，就已经很复杂了。webpack将解析模块的代码单独封装成一个工具包，
+即`enhanced-resolve`。
 
 ### loaders目录
 loaders目录里面都是各种手写loader，目前手写的 loader 有：
@@ -37,144 +50,65 @@ plugins目录里面都是各种手写常见的webpack plugin，目前手写的pl
 - mini-css-extract-plugin 对应的官方版本0.9.0。进行中
 
 
-### mini-pack目录
-手写webpack主流程源码
+### webpack主流程
+在手写webpack主流程源码时，主要以下面的demo为例，在src目录下新建三个文件index.j，test.js，a.js
+index.js
+```javascript
+const test = require('./test.js')
 
+console.log(test)
+```
+test.js
+```javascript
+const a = require('./a.js')
 
-### 调用流程
+console.log('a==', a)
+console.log('test.js')
+module.exports = 'test.js file'
+```
+a.js
+```javascript
+console.log('a.js')
+module.exports = 'a.js file'
+```
 
-SingleEntryPlugin注册compiler.hooks.make插件，插件调用
-compilation.addEntry方法，这是webpack编译的入口
-
-
-Compiler实例调用this.hooks.make.callAsync方法，触发compilation.addEntry(context, dep, name, callback)方法执行
-
-其中context是当前项目目录，dep是一个包含入口文件的对象，包含的基本属性有request: './src/index.js', userRequest: './src/index.js'，name是打包后的文件名，默认是 'main'
-
-
-Compilation.addEntry调用Compilation._addModuleChain方法
-
-Compilation._addModuleChain调用NormalModuleFactory.create方法，create方法调用NormalModuleFactory.hooks.resolver钩子开始解析模块，resolver插件主要接受一个对象：
-const result = {
-    request: './src/index.js',
-    dependencies: [dep], // dep是addEntry方法的第二个参数dep
-    contextInfo: {issuer: '', compiler: undefined},
-    context:'/Users/lizuncong/Documents/手写源码系列/mini-webpack'
-}
-
-NormalModuleFactory.hooks.resolver插件主要逻辑如下：
-- 调用enhanced-resolve/lib/Resolver.js中的resolve方法
-
-- 以解析 ./src/index.js 文件为例，从enhanced-resolve/lib/Resolver.js文件的resolve方法开始， 构造doResolve方法的第二个参数
-const obj = {
-    context,
-    path,
-    request,
-}
-这个obj用于后续收集所有插件的处理结果
-
-- resolve调用this.doResolve方法开始解析
-    + resolve AsyncSeriesBailHook  
-        + UnsafeCachePlugin判断是否有这个模块的缓存，如果有则直接返回，如果没有则调用下一个插件处理, obj参数不变
-    + newResolve AsyncSeriesBailHook
-        + ParsePlugin处理，这个主要是判断路径是否包含query参数，如 './src/index.js?a=1&b=2'，以及判断请求路径是否是模块或者目录，obj参数变为：
-        obj = {
-            context: {
-                compiler:undefined,
-                issuer:''
-            }
-            path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
-            // parsePlugin处理后的参数如下：
-            query:'',
-            request:'./src/index.js',
-            module:false,
-            file:false,
-            directory:false,
+webpack.config.js如下:
+```javascript
+const path = require('path');
+module.exports = {
+  mode: "development",
+  entry: './src/index.js',
+  devtool: "none",
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: {
+          loader: path.resolve(__dirname, 'loaders', 'loader1'),
         }
-    + parsedResolve AsyncSeriesBailHook
-        + DescriptionFilePlugin，获取context下面的package.json文件内容，经过DescriptionFilePlugin处理后，obj参数变为：
-        obj = { 
-            context: {
-                compiler:undefined,
-                issuer:''
-            },
-            path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
-            // parsePlugin处理后的参数如下：
-            query:'',
-            request:'./src/index.js',
-            module:false,
-            file:false,
-            directory:false,
-            // DescriptionFilePlugin处理后的参数如下：
-            descriptionFileData, // 这个字段的内容就是package.json文件的内容
-            descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
-            relativePath:'.'
-            descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack'
-        }
-            
-            + describedResolve AsyncSeriesBailHook。DescriptionFilePlugin处理完成后，直接调用describedResolve这个hook的执行，再根据这个hook的执行结果判断是否执行NextPlugin。describedResolve包含44个plugin
+      },
+    ]
+  },
+  plugins: []
+};
+```
 
-                + 1个AliasFieldPlugin。给obj参数注入了三个变量
-                    const obj = {
-                        context: {
-                            compiler:undefined,
-                            issuer:''
-                        },
-                        path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
-                        // parsePlugin处理后的参数如下：
-                        query:'',
-                        request:'./src/index.js',
-                        module:false,
-                        file:false,
-                        directory:false,
-                        // DescriptionFilePlugin处理后的参数如下：
-                        descriptionFileData, // 这个字段的内容就是package.json文件的内容
-                        descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
-                        relativePath:'.'
-                        descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack' 
-                        //经过aliasFieldPlugin处理的参数如下：
-                        __innerRequest:'./src/index.js'
-                        __innerRequest_relativePath:'.'
-                        __innerRequest_request:'./src/index.js'
-                    }
-                + 40个AliasPlugin。
-                + 1个ModuleKindPlugin
-                + 1个JoinRequestPlugin，经过JoinRequestPlugin处理后的obj参数如下:
-                    const obj = {
-                        context: {
-                            compiler:undefined,
-                            issuer:''
-                        },
-                        path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack',
-                        // parsePlugin处理后的参数如下：
-                        query:'',
-                        request:'./src/index.js',
-                        module:false,
-                        file:false,
-                        directory:false,
-                        // DescriptionFilePlugin处理后的参数如下：
-                        descriptionFileData, // 这个字段的内容就是package.json文件的内容
-                        descriptionFilePath:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/package.json',
-                        relativePath:'.'
-                        descriptionFileRoot:'/Users/lizuncong/Documents/手写源码系列/mini-webpack' 
-                        //经过aliasFieldPlugin处理的参数如下：
-                        __innerRequest:'./src/index.js'
-                        __innerRequest_relativePath:'.'
-                        __innerRequest_request:'./src/index.js',
-                       // JoinRequestPlugin处理的覆盖了path,// relativePath,request属性 
-                       path:'/Users/lizuncong/Documents/手写源码系列/mini-webpack/src/index.js',
-                       relativePath:'./src/index.js',
-                        request:undefined
-                    }
-                    + JoinRequestPlugin继续调用 relative AsyncSeriesBailHook. 这个hook包括DescriptionFilePlugin以及NextPlugin
-                        + 
+#### 理论知识
+在阅读webpack源码前，一定要对 `webpack/tapable` 用法非常熟悉。熟悉了 `tapable` 用法后，对于阅读webpack源码难度降低了一半。如果对 `tapable`
+不熟，可以看我手写的 [mini-tapable](https://github.com/lizuncong/mini-tapable)
 
+#### 思考以下几个问题
+- webpack options默认值是什么时候设置的
+- webpack 插件初始化是什么时候设置的
+- chunk 和 module的关联是咋样的
+- webpack loader的执行时机
+- webpack plugin的执行时机
+- webpack是如何解析模块的，即当我们通过require('./test.js')引入一个模块后，webpack是如何查找对应的文件的
+- webpack如何解析模块依赖的
+- webpack如何构建模块
+- webpack模版代码如何生成
 
-                + 1个RootPlugin
-
-        + NextPlugin 
-
-在整个模块的resolve过程中，obj和callback回调都会在整个插件流中传递，和resolve相关的基本都是AsyncSeriesBailHook异步串行保险式钩子。
-
-### webpack各阶段
-- make阶段主要是根据 `requier()` 构建 `Module` 
