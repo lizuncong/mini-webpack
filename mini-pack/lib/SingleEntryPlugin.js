@@ -9,6 +9,7 @@ class SingleEntryDependency {
 	}
 }
 
+// 在EntryOptionPlugin中初始化
 class SingleEntryPlugin{
     constructor(context, entry, name){
         this.context = context;
@@ -16,6 +17,7 @@ class SingleEntryPlugin{
         this.name = name // 打包后的dist文件名称，默认main.js
     }
     apply(compiler){
+        // 在compiler.newCompilation方法中触发
         compiler.hooks.compilation.tap(
 			"SingleEntryPlugin",
 			(compilation, { normalModuleFactory }) => {

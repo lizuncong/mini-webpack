@@ -6,6 +6,7 @@ const NamedChunksPlugin = require('./NamedChunksPlugin')
 const FunctionModulePlugin = require('./FunctionModulePlugin')
 const TemplatedPathPlugin = require("./TemplatedPathPlugin");
 
+// 在webpack.js中初始化
 class WebpackOptionsApply{
     process(options, compiler){
         compiler.outputPath = options.output.path;
@@ -13,31 +14,28 @@ class WebpackOptionsApply{
 
 
         const JsonpTemplatePlugin = require("./web/JsonpTemplatePlugin");
-        // FetchCompileWasmTemplatePlugin = require("./web/FetchCompileWasmTemplatePlugin");
-        // NodeSourcePlugin = require("./node/NodeSourcePlugin");
         new JsonpTemplatePlugin().apply(compiler);
         new FunctionModulePlugin().apply(compiler);
         new TemplatedPathPlugin().apply(compiler);
-        // new FetchCompileWasmTemplatePlugin({
-        //     mangleImports: options.optimization.mangleWasmImports
-        // }).apply(compiler);
-        // new FunctionModulePlugin().apply(compiler);
-        // new NodeSourcePlugin(options.node).apply(compiler);
-        // new LoaderTargetPlugin(options.target).apply(compiler);
+        
         new JavascriptModulesPlugin().apply(compiler);
-		// new JsonModulesPlugin().apply(compiler);
-		// new WebAssemblyModulesPlugin({
-		// 	mangleImports: options.optimization.mangleWasmImports
-		// }).apply(compiler);
 
-        // 挂载入口点，监听make事件
+        // 挂载入口点，注册compiler.hooks.entryOption插件
         new EntryOptionPlugin().apply(compiler)
-        new CommonJsPlugin(options.module).apply(compiler);
-       
-        new NamedModulesPlugin().apply(compiler);
-        new NamedChunksPlugin().apply(compiler)
+        // 触发插件执行，此时初始化SingleEntryPlugin初始化并注册插件，
+        // 监听compiler.hooks.make钩子
         compiler.hooks.entryOption.call(options.context, options.entry)
         
+        
+        
+        new CommonJsPlugin(options.module).apply(compiler);
+        new NamedModulesPlugin().apply(compiler);
+        new NamedChunksPlugin().apply(compiler)
+      
+        
+        // compiler.resolverFactory主要用于创建解析文件的resolver实例
+        // 创建resolver实例时需要传递options选项，这里就是用钩子注册
+        // 创建resolver实例需要的选项
         compiler.resolverFactory.hooks.resolveOptions
         .for("loader")
         .tap("WebpackOptionsApply", resolveOptions => {
@@ -61,7 +59,6 @@ class WebpackOptionsApply{
             );
         });
         
-        // compiler.hooks.afterPlugins.call(compiler);
         return options;
     }
 }

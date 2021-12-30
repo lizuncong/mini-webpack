@@ -11,11 +11,6 @@ const buildChunkGraph = require('./buildChunkGraph')
 const createHash = require('./util/createHash')
 const ModuleTemplate = require('./ModuleTemplate')
 const CachedSource = require('../webpack-sources/CachedSource')
-// const normalModuleFactory = require('./NormalModuleFactory')
-// const ejs = require('ejs')
-// const fs = require('fs')
-// const tpl = fs.readFileSync(path.posix.join(__dirname, 'main.ejs'), 'utf8')
-// const render = ejs.compile(tpl)
 class Compilation extends Tapable {
     constructor(compiler){
         super();
@@ -34,11 +29,9 @@ class Compilation extends Tapable {
         this.hooks = {
 			beforeModuleIds: new SyncHook(["modules"]),
             beforeChunkIds: new SyncHook(["chunks"]),
-            // addEntry: new SyncHook(['entry', 'name']),
-            // seal: new SyncHook([]),
-            // beforeChunks: new SyncHook([]),
-            // afterChunks: new SyncHook([])
         }
+        //  一般都是通过compiler.hooks.compilation注册插件的方式
+        // 为 this.dependencyFactories 设置对应的moduleFactory
         this.dependencyFactories = new Map();
 		this._preparedEntrypoints = [];
 
@@ -52,19 +45,18 @@ class Compilation extends Tapable {
 		this.entrypoints = new Map();
 
         this.chunks = []
-
-        // this.files = []
-
         this.assets = {}
     }
 
 
+    // 从webpack.config中entry指定的入口模块(即入口文件)开始打包
     addEntry(context, entry, name, callback){
         const slot = {
 			name: name,
 			request: entry.request,
 			module: null
 		};
+        // 将入口模块添加进this._preparedEntrypoints数组中
         this._preparedEntrypoints.push(slot)
         this._addModuleChain(
             context, 
@@ -82,6 +74,8 @@ class Compilation extends Tapable {
 
     _addModuleChain(context, dependency, onModule, callback){
         const Dep = dependency.constructor
+        // 在Compiler.newCompilation中触发this.hooks.compilation.call(compilation, params)钩子执行，
+        // 从而在SingleEntryPlugin.js中设置了this.dependencyFactories的值
         const moduleFactory = this.dependencyFactories.get(Dep)
         moduleFactory.create(
             {
@@ -244,6 +238,7 @@ class Compilation extends Tapable {
         this.hooks.beforeChunkIds.call(this.chunks);
         this.createHash();
 
+        // seal阶段的逻辑主要是在createChunkAssets中，这里开始生成模块模版代码
         this.createChunkAssets();
 
         callback()

@@ -16,6 +16,8 @@ function dirname(path) {
 	if(idx === idx2) return path.substr(0, idx + 1);
 	return path.substr(0, idx);
 }
+
+// 本质上通过require()引入的文件对应一个NormalModule实例
 class NormalModule {
 	constructor({
 		type,
@@ -40,8 +42,9 @@ class NormalModule {
 		this.generator = generator;
 		this.resource = resource;
 		this.matchResource = matchResource;
-		this.loaders = loaders;
-        this.dependencies = [];
+		this.loaders = loaders; // 模块的loaders
+        this.dependencies = []; // 模块的依赖
+        this._source = null; // OriginalSource的实例，保存的是模块经过loader处理后的源码
         this._chunks = new Set();
         this.index = null;
         this.index2 = null;
@@ -58,6 +61,8 @@ class NormalModule {
 		this._chunks.add(chunk);
 		return true;
 	}
+    // 1.执行loader，获取模块经过loader处理后的源码
+    // 2.解析源码得到对应的模块依赖
 	build(options, compilation, resolver, fs, callback){
         const loaderContext = {
             rootContext: options.context, 
@@ -122,45 +127,6 @@ class NormalModule {
 		const cachedSource = new CachedSource(source);
 		return cachedSource;
 	}
-	// build(options, compilation){
-    //     // 现在开始编译入口模块了
-    //     const originalSource = compilation.inputFileSystem.readFileSync(this.request, 'utf8');
-    //     const ast = babelParser.parse(originalSource)
-    //     const dependencies = [];
-    //     traverse(ast, {
-    //         CallExpression: (nodePath) => {
-    //             if(nodePath.node.callee.name === 'require'){
-    //                 // 获取当前的节点对象
-    //                 const node = nodePath.node;
-    //                 node.callee.name = '__webpack_require__'
-    //                 const moduleName = node.arguments[0].value
-    //                 const extname = moduleName.split(path.posix.sep).pop().indexOf('.') === -1 ? '.js' : '';
-    //                 // 获取依赖模块的绝对路径
-    //                 const dependencyRequest = path.posix.join(path.posix.dirname(this.request), moduleName+extname)
-    //                 // 获取依赖模块的id
-    //                 const dependencyModuleId = './' + path.posix.relative(this.context, dependencyRequest)
-
-    //                 dependencies.push({
-    //                     name: this.name, // 此模块所属的代码块的名字
-    //                     context: this.context,
-    //                     request: dependencyRequest
-    //                 })
-    //                 // 把参数从./title.js改为./src/title.js
-    //                 node.arguments = [types.stringLiteral(dependencyModuleId)]
-    //             }
-    //         }
-    //     })
-
-    //     const {code} = generator(ast)
-    //     this._ast = ast;
-    //     this._source = code;
-    //     this.moduleId = './' + path.posix.relative(this.context, this.request)
-    //     compilation.modules.push(this)
-    //     compilation._modules[this.request] = this;
-    //     // this.dependencies = dependencies
-    //     compilation.buildDependencies(this, dependencies)
-    //     return this
-    // }
 }
 
 module.exports = NormalModule;

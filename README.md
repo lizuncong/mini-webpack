@@ -114,7 +114,7 @@ module.exports = {
 
 #### webpack主流程图
 当我们运行 `npm run build` 的时候，npm 会从 `./node_modules/webpack/bin/webpack` 开始，找到并执行 `webpack-cli/bin/cli.js`，这就是webpack编译的入口文件
-
+![image](https://github.com/lizuncong/mini-webpack/blob/master/webpack-main.png)
 
 #### 打包阶段
 webpack打包可以分为几个阶段

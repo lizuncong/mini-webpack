@@ -229,6 +229,7 @@ module.exports = class MainTemplate extends Tapable {
 					"/************************************************************************/\n"
 				);
 				source.add("/******/ (");
+				// 在JavascriptModulesPlugin中注册this.hooks.modules插件
 				source.add(
 					this.hooks.modules.call(
 						new RawSource(""),
@@ -246,7 +247,7 @@ module.exports = class MainTemplate extends Tapable {
 	}
 	getRenderManifest(options){
 		const result = [];
-
+		// 在JavascriptModulesPlugin.js中注册renderManifest插件
 		this.hooks.renderManifest.call(result, options);
 
 		return result;

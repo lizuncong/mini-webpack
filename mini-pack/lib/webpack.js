@@ -8,7 +8,7 @@ const webpack = options => {
     options = new WebpackOptionsDefaulter().process(options)
     const compiler = new Compiler(options.context);
     compiler.options = options;
-    // 给comlier设置读写文件，日志输出属性值
+    // 给comlier设置读写文件系统，日志输出属性值
     new NodeEnvironmentPlugin().apply(compiler)
     // 注册插件
     if(options.plugins && Array.isArray(options.plugins)){

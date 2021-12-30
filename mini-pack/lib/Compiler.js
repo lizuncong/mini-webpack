@@ -15,7 +15,6 @@ class Compiler extends Tapable {
         super();
         // 这些钩子大部分在WebpackOptionsApply实例中注册插件
         this.hooks = {
-			thisCompilation: new SyncHook(["compilation", "params"]),
             afterCompile: new AsyncSeriesHook(["compilation"]),
 			afterResolvers: new SyncHook(["compiler"]),
 			beforeRun: new AsyncSeriesHook(["compiler"]),
@@ -28,7 +27,8 @@ class Compiler extends Tapable {
 			emit: new AsyncSeriesHook(["compilation"]),
         }
         this.name = undefined;
-
+        
+        // 用于创建resolver实例
         this.resolverFactory = new ResolverFactory();
         this.outputPath = "";
         this.outputFileSystem = null;
@@ -69,6 +69,8 @@ class Compiler extends Tapable {
         this.hooks.thisCompilation.call(compilation, params)
         // 主要是为compilation.dependencyFactories设置值以及
         // normalModuleFactory.hooks注册钩子
+        // 触发SingleEntryPlugin中注册的插件执行，从而为compilation.dependencyFactories
+        // 设置对应的params.normalModuleFactory值
         this.hooks.compilation.call(compilation, params)
         return compilation
     }
@@ -76,13 +78,13 @@ class Compiler extends Tapable {
 
     compile(onCompiled){
         const params = {
+            // normalModuleFactory负责调用compiler.resolverFactory.create方法创建
+            // enhanced-resolver实例。normalModuleFactory也是负责解析模块的工厂实例
             normalModuleFactory: new NormalModuleFactory(
                 this.options.context,
                 this.resolverFactory,
                 this.options.module || {}
             ),
-			// contextModuleFactory: this.createContextModuleFactory(),
-			// compilationDependencies: new Set()
         }
         const compilation = this.newCompilation(params)
         // 创建完compilation后，触发compilation的addEntry方法。
